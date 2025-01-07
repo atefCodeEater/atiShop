@@ -11,7 +11,7 @@ import { useSignIn } from "@/app/action/signIn";
 export default function SignInComponent() {
   return (
     <div className=" ">
-      <Popover backdrop="blur" placement="left-end">
+      <Popover backdrop="opaque" placement="left-end">
         <PopoverTrigger>
           <div
             className="bg-[#4E0114] cursor-pointer

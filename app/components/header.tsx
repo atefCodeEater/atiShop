@@ -3,6 +3,7 @@
 import { Button } from "@nextui-org/react";
 import SigninComponent from "./related_Auth/signin_Comp";
 import SignOutComponent from "./related_Auth/signOut_Comp";
+import SignUpComponent from "./related_Auth/signUp_Comp";
 
 import { auth } from "../auth";
 export default async function Header() {
@@ -15,8 +16,9 @@ export default async function Header() {
     >
       <div className="">1</div>
       <div>profile</div>
-      <div className=" flex justify-end items-center mr-2">
+      <div className=" flex justify-end items-center space-x-2 mr-2">
         <SigninComponent />
+        <SignUpComponent />
         {session?.user && <SignOutComponent />}
       </div>
     </div>
