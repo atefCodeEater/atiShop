@@ -27,6 +27,9 @@ export default function SignUpComponent() {
     console.log("image : ", image);
   };
   console.log(1);
+  console.log(1);
+  console.log(1);
+
   const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setScale(parseFloat(event.target.value));
     // Update scale
@@ -146,7 +149,7 @@ export default function SignUpComponent() {
               </div>
 
               <Slider
-                onChange={(e) => handleScaleChange(e)}
+                onChange={(e: any) => handleScaleChange(e)}
                 classNames={{
                   thumb: "bg-[#4E0114] ppearance-none",
                   track:
