@@ -26,6 +26,10 @@ export default function SignUpComponent() {
     setImage(dropped[0]);
     console.log("image : ", image);
   };
+  console.log(1);
+  console.log(1);
+  console.log(1);
+
   const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setScale(parseFloat(event.target.value));
     // Update scale
