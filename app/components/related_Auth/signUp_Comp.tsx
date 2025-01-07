@@ -145,7 +145,7 @@ export default function SignUpComponent() {
               </div>
 
               <Slider
-                onChange={(e) => handleScaleChange(e)}
+                onChange={(e: any) => handleScaleChange(e)}
                 classNames={{
                   thumb: "bg-[#4E0114] ppearance-none",
                   track:
