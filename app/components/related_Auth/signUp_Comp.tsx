@@ -24,7 +24,7 @@ export default function SignUpComponent() {
 
   const handleDrop = (dropped: any) => {
     setImage(dropped[0]);
-    console.log("image : ", image);
+    console.log("IMAGE  : ", image);
   };
 
   const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
