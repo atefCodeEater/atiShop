@@ -17,34 +17,59 @@ export default function SignUpComponent() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [rePassword, setRePassword] = useState<string>("");
-  const [messageUi, setMessageUi] = useState<string>("");
+  const [messageUi, setMessageUi] = useState<{
+    message: string;
+    fault: boolean;
+  }>({ message: "", fault: false });
   const [image, setImage] = useState<any>("");
-  const [scale, setScale] = useState<any>(0);
+  const [scale, setScale] = useState<any>(0.6);
   const editorRef = useRef<AvatarEditor | null>(null);
 
   const handleDrop = (dropped: any) => {
     setImage(dropped[0]);
-    console.log("IMAGE  : ", image);
   };
+  console.log("IMAGE  : ", image);
 
-  const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setScale(parseFloat(event.target.value));
+  const handleScaleChange = (value: number | number[]) => {
+    if (value) {
+      setScale(value);
+    }
     // Update scale
   };
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (password !== rePassword) {
-      return setMessageUi("پسورد و تکرار پسورد برابر نیست");
+      return setMessageUi({
+        message: "پسورد و تکرار پسورد برابر نیست",
+        fault: true,
+      });
     }
     if (!username.length) {
-      return setMessageUi("یوزرنیم وارد نشده است");
+      return setMessageUi({
+        message: "یوزرنیم وارد نشده است",
+        fault: true,
+      });
     }
 
     const canvas = editorRef.current?.getImageScaledToCanvas();
     const imagefile = await canvasToFile(canvas, image.name, image.type);
     const formdata = new FormData();
     formdata.append("Image", imagefile as any);
-    console.log("imagefile : ", imagefile);
+    formdata.append("user", JSON.stringify({ username, password } as any));
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_ROOTURL}/api/authentication/credencial`,
+      {
+        method: "POST",
+        body: formdata,
+      }
+    );
+    const message = response.json();
+    if (response.ok) {
+      return setMessageUi({
+        message: "با موفقیت انجام شد",
+        fault: false,
+      });
+    }
   };
 
   return (
@@ -64,7 +89,7 @@ export default function SignUpComponent() {
           className="bg-[#4E0114] 
           border-1 border-[#FFECC5] 
    
-          rounded-md text-center p-1 text-[#FFECC5] w-52 h-80 relative"
+          rounded-md text-center p-1 text-[#FFECC5] w-52 h-[340px] relative"
         >
           <h1
             className="absolute text-center w-full
@@ -74,7 +99,7 @@ export default function SignUpComponent() {
           </h1>
           <form
             onSubmit={async (e) => await handleSubmit(e)}
-            className=" w-full h-[270px]  absolute bottom-1"
+            className=" w-full h-[300px]  absolute bottom-0"
           >
             <div className="grid grid-cols-15 h-full relative w-full font-B_Traffic ">
               <input
@@ -120,11 +145,17 @@ export default function SignUpComponent() {
                   setRePassword(e.target.value as string);
                 }}
               />
-              <div className="absolute text-base  w-[190px] text-red-500 top-[120px] h-8 left-2">
-                {messageUi}
+
+              <div
+                className={`absolute text-base  w-[190px] ${
+                  messageUi.fault ? "text-red-500" : "text-green-500"
+                }  
+              top-[120px] h-8 left-2`}
+              >
+                {messageUi.message}
                 <div
                   style={{ scale: 0.22 }}
-                  className="absolute -top-4 right-14  scale-y-50 w-[190px] h-24 "
+                  className="absolute -top-0 right-14  scale-y-50 w-[190px] h-28 "
                 >
                   <Dropzone onDrop={handleDrop} noClick noKeyboard>
                     {({ getRootProps, getInputProps }) => (
@@ -146,19 +177,18 @@ export default function SignUpComponent() {
               </div>
 
               <Slider
-                onChange={(e: any) => handleScaleChange(e)}
+                onChange={handleScaleChange}
                 classNames={{
-                  thumb: "bg-[#4E0114] ppearance-none",
-                  track:
-                    " border-[#4E0114] border-0 rounded-sm appearance-none",
-                  filler: " bg-[#FFECC5] appearance-none",
+                  thumb: "bg-[#4E0114]",
+                  track: " border-[#4E0114] border-0 rounded-sm ",
+                  filler: " bg-[#FFECC5] ",
                 }}
-                className="absolute  h-[60px] bottom-12  right-0 ppearance-none"
+                className="absolute  h-[60px] bottom-14  right-0"
                 aria-label="Temperature"
-                defaultValue={2}
+                defaultValue={1}
                 value={scale}
-                maxValue={1}
-                minValue={0}
+                minValue={0.6}
+                maxValue={2}
                 // value={10}
                 orientation="vertical"
                 size="sm"
