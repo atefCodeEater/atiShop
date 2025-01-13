@@ -55,11 +55,12 @@ export default function SignUpComponent() {
         level: 3,
       });
     }
+    const formdata = new FormData();
 
     const canvas = editorRef.current?.getImageScaledToCanvas();
     const imagefile = await canvasToFile(canvas, image.name, image.type);
-    const formdata = new FormData();
     formdata.append("Image", imagefile as any);
+
     formdata.append(
       "user",
       JSON.stringify({ username, password, email } as any)
@@ -183,7 +184,7 @@ export default function SignUpComponent() {
               />
 
               <div
-                className={`absolute text-base w-[190px]
+                className={`absolute text-sm w-[190px]
                    ${messageUi.level === 3 && "text-red-500"}  
                    ${messageUi.level === 2 && "text-green-500"}
                    ${messageUi.level === 1 && "text-[#FFECC5]"}  
@@ -191,7 +192,13 @@ export default function SignUpComponent() {
 
               top-[160px] h-8 left-2`}
               >
-                {/* {messageUi.message.map(message)} */}
+                {messageUi.message.map((message: any) => {
+                  return (
+                    <div key={message}>
+                      <div>{message}</div>
+                    </div>
+                  );
+                })}
                 <div
                   style={{ scale: 0.22 }}
                   className="absolute -bottom-[70px]  right-14  scale-y-50 w-[190px] h-28 "
