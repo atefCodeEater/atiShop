@@ -35,16 +35,19 @@ export async function POST(request: Request) {
             fs.writeFileSync(filePath, Buffer.from(buffer) as Uint8Array);
             var imageUrl = `${process.env.NEXT_PUBLIC_ROOTURL}/public/uploads/imagesOfGroup/${username}.jpg`
 
+            const salt = await bcrypt.genSalt(5)
+            const hashPassword = await bcrypt.hashSync(password, salt)
+
             const User = await db.user.create({
                 data: {
                     name: username,
                     email: email,
-                    password: password,
+                    password: hashPassword,
                     image: image.name !== "undefined" ? imageUrl : ''
                 }
             })
             console.log("User in Api Submit", User);
-            console.log(`File saved to ${filePath}`);
+
             return NextResponse.json({ message: ['با موفقیت انجام شد'], level: 2 })
         } else {
             return NextResponse.json({ messages: result.error.flatten().fieldErrors })
