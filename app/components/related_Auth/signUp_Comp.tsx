@@ -207,12 +207,13 @@ export default function SignUpComponent() {
                     {({ getRootProps, getInputProps }) => (
                       <div {...getRootProps()}>
                         <AvatarEditor
+                          className="border-[#FFECC5] border-[12px]  border-dashed"
                           ref={editorRef}
                           scale={scale}
                           width={700}
                           height={700}
                           image={image}
-                          border={6}
+                          border={1}
                         />
 
                         <input {...getInputProps()} />
