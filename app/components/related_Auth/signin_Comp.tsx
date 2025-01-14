@@ -8,7 +8,31 @@ import {
 } from "@nextui-org/react";
 import Image from "next/image";
 import { useSignIn } from "@/app/action/signIn";
+import { useState } from "react";
+import Button_Spinner from "../ReusableComponents/ButtonSpinner";
 export default function SignInComponent() {
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
+  const handleSubmit = async (e: any) => {
+    const formdata = new FormData();
+
+    formdata.append("email", email);
+    formdata.append("password", password);
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_ROOTURL}/api/authentication/credencial`,
+      {
+        method: "POST",
+        body: formdata,
+      }
+    );
+    const message = await response.json();
+    if (response.ok) {
+      console.log(message.message);
+    }
+  };
+
   return (
     <div className=" ">
       <Popover backdrop="opaque" placement="left-end">
@@ -48,19 +72,25 @@ export default function SignInComponent() {
            border-[#FFECC5] top-14 py-2 border-t-1
             border-dashed font-B_Traffic_Bold"
           >
-            ورود با نام کاربری و رمز عبور
+            ورود با ایمیل و رمز عبور
           </h1>
           <form className=" w-full h-3/5  absolute bottom-2">
             <div className="grid grid-cols-15 h-full relative w-full font-B_Traffic ">
               <input
+                value={email || ""}
+                onChange={(event) => setEmail(event.target.value)}
+                name="email"
                 className="text-right font-B_Traffic_Bold top-2 absolute w-[190px] 
                 left-2 rounded-sm h-8 mb-1 
                  bg-[#FFECC5] placeholder-[#4E0114] 
                 border-1
                  border-[#FFECC5] "
-                placeholder="نام کاربری "
+                placeholder="ایمیل "
               />
               <input
+                onChange={(event) => setPassword(event.target.value)}
+                value={password || ""}
+                name="password"
                 className="text-right font-B_Traffic_Bold top-12 absolute
                  w-[190px] left-2 rounded-sm h-8 mb-1 
                  bg-[#FFECC5] placeholder-[#4E0114] 
@@ -68,14 +98,12 @@ export default function SignInComponent() {
                  border-[#FFECC5] "
                 placeholder="رمز عبور"
               />
-              <Button
-                className=" rounded-md absolute font-B_Traffic_Bold
+              <Button_Spinner
+                children="ورود"
+                className="rounded-md absolute font-B_Traffic_Bold
                  bg-[#4E0114] text-[#FFECC5] border-1
                  border-[#FFECC5] bottom-0 w-[190px] right-2"
-                type="submit"
-              >
-                ورود
-              </Button>
+              />
             </div>
           </form>
         </PopoverContent>
