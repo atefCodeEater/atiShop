@@ -184,10 +184,13 @@ export default function SignUpComponent() {
               />
 
               <div
-                className={`absolute text-sm w-[190px]
+                className={`absolute text-xs w-[190px] 
                    ${messageUi.level === 3 && "text-red-500"}  
                    ${messageUi.level === 2 && "text-green-500"}
-                   ${messageUi.level === 1 && "text-[#FFECC5]"}  
+                   ${
+                     messageUi.level === 1 &&
+                     "text-sm flex items-center justify-center text-[#FFECC5]"
+                   }  
 
 
               top-[160px] h-8 left-2`}
@@ -207,12 +210,13 @@ export default function SignUpComponent() {
                     {({ getRootProps, getInputProps }) => (
                       <div {...getRootProps()}>
                         <AvatarEditor
+                          className="border-[#FFECC5] border-[12px]  border-dashed"
                           ref={editorRef}
                           scale={scale}
                           width={700}
                           height={700}
                           image={image}
-                          border={6}
+                          border={1}
                         />
 
                         <input {...getInputProps()} />

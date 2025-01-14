@@ -17,9 +17,14 @@ export default async function Header() {
       <div className="">1</div>
       <div>profile</div>
       <div className=" flex justify-end items-center space-x-2 mr-2">
-        <SigninComponent />
-        <SignUpComponent />
-        {session?.user && <SignOutComponent />}
+        {session?.user ? (
+          <SignOutComponent />
+        ) : (
+          <div className=" flex justify-end items-center space-x-2 mr-2">
+            <SigninComponent />
+            <SignUpComponent />
+          </div>
+        )}
       </div>
     </div>
   );
