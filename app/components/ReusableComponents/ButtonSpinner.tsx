@@ -10,7 +10,7 @@ export default function Button_Spinner({
 }: {
   className: string;
   onClick?: any;
-  children: string;
+  children: any;
 }) {
   const { pending } = useFormStatus();
   return (

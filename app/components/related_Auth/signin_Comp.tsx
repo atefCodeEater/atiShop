@@ -10,9 +10,15 @@ import Image from "next/image";
 import { useSignIn } from "@/app/action/signIn";
 import { useState } from "react";
 import Button_Spinner from "../ReusableComponents/ButtonSpinner";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/dist/server/api-utils";
+import { useRouter } from "next/navigation";
+import { useFormStatus } from "react-dom";
 export default function SignInComponent() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [messageUi, setMessageUi] = useState<string>("");
+  const router = useRouter();
 
   const handleSubmit = async (e: any) => {
     const formdata = new FormData();
@@ -29,6 +35,10 @@ export default function SignInComponent() {
     );
     const message = await response.json();
     if (response.ok) {
+      setMessageUi(message.message);
+      setTimeout(() => {
+        router.refresh();
+      }, 1000);
       console.log(message.message);
     }
   };
@@ -74,7 +84,10 @@ export default function SignInComponent() {
           >
             ورود با ایمیل و رمز عبور
           </h1>
-          <form className=" w-full h-3/5  absolute bottom-2">
+          <form
+            action={handleSubmit}
+            className=" w-full h-3/5  absolute bottom-2"
+          >
             <div className="grid grid-cols-15 h-full relative w-full font-B_Traffic ">
               <input
                 value={email || ""}
@@ -98,6 +111,12 @@ export default function SignInComponent() {
                  border-[#FFECC5] "
                 placeholder="رمز عبور"
               />
+              <div
+                className="rounded-md h-6 absolute font-B_Traffic_Bold
+                 text-[#FFECC5]  bottom-[44px] w-[190px] right-2"
+              >
+                {messageUi}
+              </div>
               <Button_Spinner
                 children="ورود"
                 className="rounded-md absolute font-B_Traffic_Bold

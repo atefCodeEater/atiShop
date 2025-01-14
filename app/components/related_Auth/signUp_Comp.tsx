@@ -15,6 +15,7 @@ import AvatarEditor from "react-avatar-editor";
 import { canvasToFile } from "@/app/services/canvasToFile";
 import Button_Spinner from "../ReusableComponents/ButtonSpinner";
 import { string } from "zod";
+import { useDebounce } from "use-debounce";
 export default function SignUpComponent() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -28,6 +29,7 @@ export default function SignUpComponent() {
     message: ["محل قرارگیری عکس"],
     level: 1,
   });
+  console.log("username : ", username);
   const [image, setImage] = useState<any>("");
   const [scale, setScale] = useState<any>(0.6);
   const editorRef = useRef<AvatarEditor | null>(null);
@@ -93,7 +95,6 @@ export default function SignUpComponent() {
       });
     }
   };
-  console.log("messageUi: ", messageUi);
 
   return (
     <div className=" ">
@@ -136,7 +137,7 @@ export default function SignUpComponent() {
                  border-[#FFECC5]  "
                 placeholder="نام کاربری "
                 onChange={(e) => {
-                  setUsername(e.target.value as string);
+                  return setUsername(e.target.value as string);
                 }}
               />
               <input

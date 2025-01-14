@@ -1,11 +1,18 @@
 "use client";
 import { Button } from "@nextui-org/react";
+import { signOut } from "next-auth/react";
 import { useSignOut } from "@/app/action/signOut";
+import { useRouter } from "next/navigation";
 
 export default function SignOutComponent() {
+  const router = useRouter();
+  const handlesignOut = async (e: any) => {
+    await useSignOut();
+    return router.refresh();
+  };
   return (
     <div>
-      <form onSubmit={async () => await useSignOut()}>
+      <form action={handlesignOut}>
         <Button
           type="submit"
           className="bg-[#4E0114]  cursor-pointer ml-2 mr-2

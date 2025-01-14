@@ -4,11 +4,14 @@ import { PrismaClient } from "@prisma/client"
 import Google from "next-auth/providers/google"
 import { db } from "./db"
 import Credentials from "next-auth/providers/credentials"
+import { revalidatePath } from "next/cache"
 
 const prisma = new PrismaClient()
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
+  session: { strategy: 'jwt' },
+
   providers: [Google({
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
@@ -23,10 +26,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       password: { label: 'password', type: "text" },
     },
     authorize: async (credentials) => {
-      let user = null
 
-      user = await db.user.findUnique({ where: { email: credentials.email as string } })
-      console.log("USER IN AUTH : ", user);
+      console.log("USER IN AUTH : ", credentials);
+
+      var user = await db.user.findUnique({ where: { email: credentials.email as string } })
 
       if (!user) {
         // No user found, so this is their first attempt to login
@@ -34,11 +37,26 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         throw new Error("Invalid credentials.")
       }
 
+
       // return user object with their profile data
       return user
     },
   }),
   ],
-  secret: 'atef'
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) { // User is available during sign-in
+        token.id = user.id
+      }
+      return token
+    },
+    session({ session, token }: { session: any, token: any }) {
+      session.user.id = token.id
+      return session
+    },
+  },
+
+
+  secret: process.env.AUTH_SECRET
 
 })
