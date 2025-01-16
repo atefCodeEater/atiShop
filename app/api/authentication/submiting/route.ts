@@ -33,7 +33,7 @@ export async function POST(request: Request) {
             }
             const filePath = path.join(uploadDir, `${username}.jpg`);
             fs.writeFileSync(filePath, Buffer.from(buffer) as Uint8Array);
-            var imageUrl = `${process.env.NEXT_PUBLIC_ROOTURL}/public/uploads/imagesOfGroup/${username}.jpg`
+            var imageUrl = `/uploads/imagesOfGroup/${username}.jpg`
 
             const salt = await bcrypt.genSalt(5)
             const hashPassword = await bcrypt.hashSync(password, salt)
