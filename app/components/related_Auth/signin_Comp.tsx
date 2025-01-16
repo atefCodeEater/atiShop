@@ -17,7 +17,10 @@ import { useFormStatus } from "react-dom";
 export default function SignInComponent() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [messageUi, setMessageUi] = useState<string>("");
+  const [messageUi, setMessageUi] = useState<{
+    message: string;
+    fault: boolean;
+  }>({ message: "", fault: false });
   const router = useRouter();
 
   const handleSubmit = async (e: any) => {
@@ -35,7 +38,7 @@ export default function SignInComponent() {
     );
     const message = await response.json();
     if (response.ok) {
-      setMessageUi(message.message);
+      setMessageUi(message);
       setTimeout(() => {
         router.refresh();
       }, 1000);
@@ -112,10 +115,12 @@ export default function SignInComponent() {
                 placeholder="رمز عبور"
               />
               <div
-                className="rounded-md h-6 absolute font-B_Traffic_Bold
-                 text-[#FFECC5]  bottom-[44px] w-[190px] right-2"
+                className={`rounded-md h-6 absolute font-B_Traffic_Bold
+                ${
+                  messageUi.fault ? "text-[#bb284d]" : "text-[#FFECC5]"
+                }  bottom-[44px] w-[190px] right-2`}
               >
-                {messageUi}
+                {messageUi.message}
               </div>
               <Button_Spinner
                 children="ورود"
