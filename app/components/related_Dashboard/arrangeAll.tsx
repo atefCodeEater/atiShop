@@ -69,18 +69,17 @@ export default function ArrangeAll({ id }: { id: string }) {
             className={`rounded-md h-10 
             ${
               item === 1
-                ? "bg-[#FFECC5] translate-y-9 shadow-sm shadow-[#000000] text-[#4E0114] text-base"
-                : "  bg-[#4E0114] text-[#FFECC5] text-sm hover:text-base"
+                ? "bg-[#FFECC5]  translate-y-9  text-[#4E0114] text-base"
+                : "  bg-[#4E0114] text-[#FFECC5]  border-1 border-[#FFECC5] text-sm hover:text-base"
             } 
           transition-all 
           font-B_Traffic_Bold
-                  border-1
-                 border-[#FFECC5]  w-[190px] right-2`}
+                   w-[193px] right-2`}
           >
             ویرایش پروفایل
           </button>
           {item === 1 && (
-            <div className="bg-[#FFECC5] w-[188px] h-40 rounded-md"></div>
+            <div className="bg-[#FFECC5] w-[193px] h-[153px] rounded-md"></div>
           )}
         </div>
       </div>

@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 export default function SignOutComponent({
   className,
   redirect,
+  item,
 }: {
   className: string;
   redirect?: boolean;
+  item?: any;
 }) {
   const router = useRouter();
   const handlesignOut = async (e: any) => {
@@ -25,6 +27,7 @@ export default function SignOutComponent({
       <form action={handlesignOut}>
         <button type="submit" className={className}>
           خروج
+          {item}
         </button>
       </form>
     </div>

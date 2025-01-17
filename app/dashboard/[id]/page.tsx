@@ -42,6 +42,7 @@ export default async function Dashboard({
         </div>
         <div className="flex justify-end items-center">
           <SignOutComponent
+            item={<RxExit className="text-2xl text-[#FFECC5] ml-4" />}
             redirect
             className="transition-all delay-150 w-28 cursor-pointer space-x-3 hover:translate-x-3 
           flex justify-center items-center text-[#FFECC5] font-B_Traffic border-b-1 border-t-1 hover:shadow-[#FFECC5] hover:shadow-sm

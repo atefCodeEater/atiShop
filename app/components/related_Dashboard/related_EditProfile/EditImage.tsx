@@ -1,54 +1,54 @@
 "use client";
-
-import { useState } from "react";
+import AvatarEditor from "react-avatar-editor";
+import { useRef, useState } from "react";
 import Button_Spinner from "../../ReusableComponents/ButtonSpinner";
+import Dropzone from "react-dropzone";
 
 export default function EditPassword({ id }: { id: string }) {
   const [password, setPassword] = useState("");
+  const [image, setImage] = useState<File | null>();
+
   const [prevPassword, setPrevPassword] = useState("");
+  const imageRef = useRef();
+  const handleDrop = (dropped: any) => {
+    setImage(dropped[0]);
+  };
+
   return (
     <div
       className=" w-60 h-64  border-1 bg-[#4E0114] rounded-lg border-opacity-50 border-dashed
-     border-[#FFECC5] flex justify-center"
+     border-[#FFECC5] relative"
     >
-      {/* //! FOR USERNAME */}
-      <form className="grid grid-cols-1  ">
-        <h1 className="w-full mb-2 mt-2 text-[#FFECC5] font-B_Traffic_Bold text-center">
-          {" "}
-          تغییر عکس
-        </h1>
-        <input
-          className="text-right text-sm px-1 font-B_Traffic_Bold top-12 
-                 w-[190px] left-2 rounded-sm h-8 mb-1 
-                 bg-[#FFECC5] placeholder-[#4E0114] 
-                border-1
-                 border-[#FFECC5] "
-          onChange={(e) => setPrevPassword(e.target.value)}
-          type="text"
-          name="prevUsername"
-          value={prevPassword || ""}
-          placeholder="پسورد قبلی"
-        />
-        <input
-          className="text-right text-sm px-1 font-B_Traffic_Bold top-12 
-                 w-[190px] left-2 rounded-sm h-8 mb-1 
-                 bg-[#FFECC5] placeholder-[#4E0114] 
-                border-1
-                 border-[#FFECC5] "
-          onChange={(e) => setPassword(e.target.value)}
-          type="text"
-          name="prevUsername"
-          value={password || ""}
-          placeholder="پسورد جدید"
-        />
-        <div className="  flex justify-center content-center w-full h-8"></div>
-        <Button_Spinner
-          children="ثبت"
-          className="rounded-md text-lg font-B_Traffic_Bold
-          bg-[#4E0114] text-[#FFECC5] border-1
-          border-[#FFECC5]  w-[190px] "
-        />
-      </form>
+      <h1 className="w-full absolute mb-2 mt-2 text-[#FFECC5] font-B_Traffic_Bold text-center">
+        {" "}
+        تغییر عکس
+      </h1>
+      <div
+        style={{ scale: 0.19 }}
+        className=" -top-[260px] absolute w-60 right-[71px]"
+      >
+        <Dropzone onDrop={handleDrop} noClick noKeyboard>
+          {({ getRootProps, getInputProps }) => (
+            <div {...getRootProps()}>
+              <AvatarEditor
+                className="bg-slate-300"
+                width={1000}
+                height={750}
+                ref={imageRef.current}
+                image={image as File}
+                border={1}
+              />
+              <input {...getInputProps()} />
+            </div>
+          )}
+        </Dropzone>
+      </div>
+      <Button_Spinner
+        children="ثبت"
+        className="rounded-md text-lg absolute font-B_Traffic_Bold
+                bg-[#4E0114] text-[#FFECC5] border-1
+                border-[#FFECC5] bottom-[13px] left-6 w-[190px] "
+      />
     </div>
   );
 }
