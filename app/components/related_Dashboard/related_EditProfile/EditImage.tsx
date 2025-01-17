@@ -7,7 +7,10 @@ export default function EditPassword({ id }: { id: string }) {
   const [password, setPassword] = useState("");
   const [prevPassword, setPrevPassword] = useState("");
   return (
-    <div className=" w-60 h-64 border-1 rounded-lg border-opacity-50 border-dashed border-[#FFECC5] flex justify-center">
+    <div
+      className=" w-60 h-64  border-1 bg-[#4E0114] rounded-lg border-opacity-50 border-dashed
+     border-[#FFECC5] flex justify-center"
+    >
       {/* //! FOR USERNAME */}
       <form className="grid grid-cols-1  ">
         <h1 className="w-full mb-2 mt-2 text-[#FFECC5] font-B_Traffic_Bold text-center">
@@ -41,7 +44,7 @@ export default function EditPassword({ id }: { id: string }) {
         <div className="  flex justify-center content-center w-full h-8"></div>
         <Button_Spinner
           children="ثبت"
-          className="rounded-md  font-B_Traffic_Bold
+          className="rounded-md text-lg font-B_Traffic_Bold
           bg-[#4E0114] text-[#FFECC5] border-1
           border-[#FFECC5]  w-[190px] "
         />

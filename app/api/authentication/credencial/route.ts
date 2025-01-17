@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const email = formdata.get('email') as string
     const password = formdata.get('password') as string
 
-    var user = await db.user.findUnique({ where: { email: email as string } })
+    var user = await db.user.findUnique({ where: { email: email as string, password } })
     if (!email.length || !password.length) {
         return NextResponse.json({ message: 'مشخصات وارد نشده است', fault: true })
     }
