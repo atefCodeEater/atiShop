@@ -3,6 +3,7 @@ import { useSignOut } from "@/app/action/signOut";
 import { auth, signOut } from "@/app/auth";
 import SignOutComponent from "@/app/components/related_Auth/signOut_Comp";
 import ArrangeAll from "@/app/components/related_Dashboard/arrangeAll";
+import NameAndAvatar from "@/app/components/related_Dashboard/nameAvatar";
 import { paths } from "@/app/paths";
 import { Avatar } from "@nextui-org/react";
 
@@ -36,9 +37,14 @@ export default async function Dashboard({
             صفحه اصلی
           </Link>
         </div>
-        <div className="flex justify-center space-x-4 items-center text-2xl text-[#FFECC5] font-B_Traffic">
-          <div>{session.user.name}</div>
-          <Avatar size="lg" src={session.user.image || ""} />
+        <div
+          className="flex justify-center
+         space-x-4 items-center text-2xl text-[#FFECC5] font-B_Traffic"
+        >
+          <NameAndAvatar
+            image={session.user.image as string}
+            name={session.user.name as string}
+          />
         </div>
         <div className="flex justify-end items-center">
           <SignOutComponent
@@ -51,7 +57,11 @@ export default async function Dashboard({
         </div>
       </div>
       <div className="flex justify-center mt-20 w-full h-full">
-        <ArrangeAll id={id} />
+        <ArrangeAll
+          sessionImage={session.user?.image as string}
+          name={session.user?.name as string}
+          id={id}
+        />
       </div>
     </div>
   );

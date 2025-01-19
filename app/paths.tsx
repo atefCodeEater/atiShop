@@ -1,4 +1,6 @@
 export const paths = {
   homepage: () => "/",
-  dashboard: (id: string) => `dashboard/${id}`,
+  findingPassword: () => "/findingPassword",
+
+  dashboard: (id: string) => `/dashboard/${id}`,
 };

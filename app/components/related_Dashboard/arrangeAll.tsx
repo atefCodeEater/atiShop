@@ -7,7 +7,15 @@ import EditProfile from "@/app/components/related_Dashboard/edit_profile";
 import { Button } from "@nextui-org/react";
 import React, { useState } from "react";
 
-export default function ArrangeAll({ id }: { id: string }) {
+export default function ArrangeAll({
+  id,
+  name,
+  sessionImage,
+}: {
+  id: string;
+  name: string;
+  sessionImage: string;
+}) {
   const [item, setItem] = useState<number>(0);
 
   function delayRender(comp: React.ReactNode) {
@@ -85,7 +93,13 @@ export default function ArrangeAll({ id }: { id: string }) {
       </div>
       {
         <div className="w-full h-2/3 flex justify-center ">
-          {(item === 1 && <EditProfile id={id as string} />) ||
+          {(item === 1 && (
+            <EditProfile
+              sessionImage={sessionImage}
+              id={id as string}
+              name={name as string}
+            />
+          )) ||
             (item === 2 && <AddProduct id={id as string} />) ||
             (item === 3 && <EditProduct id={id as string} />) ||
             (item === 4 && <ShowProducts id={id as string} />)}

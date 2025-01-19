@@ -14,6 +14,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/dist/server/api-utils";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
+import Link from "next/link";
+import { paths } from "@/app/paths";
 export default function SignInComponent() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -63,7 +65,7 @@ export default function SignInComponent() {
           className="bg-[#4E0114] 
           border-1 border-[#FFECC5] 
    
-          rounded-md text-center p-1 text-[#FFECC5] w-52 h-64 relative"
+          rounded-md text-center p-1 text-[#FFECC5] w-52 h-[300px] relative"
         >
           <form
             action={async () => await useSignIn()}
@@ -89,7 +91,7 @@ export default function SignInComponent() {
           </h1>
           <form
             action={handleSubmit}
-            className=" w-full h-3/5  absolute bottom-2"
+            className=" w-full h-[65%]  absolute bottom-1"
           >
             <div className="grid grid-cols-15 h-full relative w-full font-B_Traffic ">
               <input
@@ -115,10 +117,10 @@ export default function SignInComponent() {
                 placeholder="رمز عبور"
               />
               <div
-                className={`rounded-md h-6 absolute font-B_Traffic_Bold
+                className={` rounded-md h-6 absolute font-B_Traffic_Bold
                 ${
                   messageUi.fault ? "text-[#bb284d]" : "text-[#FFECC5]"
-                }  bottom-[44px] w-[190px] right-2`}
+                }  bottom-[82px] w-[190px] right-2`}
               >
                 {messageUi.message}
               </div>
@@ -126,8 +128,17 @@ export default function SignInComponent() {
                 children="ورود"
                 className="rounded-md absolute font-B_Traffic_Bold
                  bg-[#4E0114] text-[#FFECC5] border-1
-                 border-[#FFECC5] bottom-0 w-[190px] right-2"
+                 border-[#FFECC5] bottom-9 w-[190px] right-2"
               />
+
+              <Link
+                className="rounded-md flex justify-center items-center absolute text-sm font-B_Traffic_Bold
+               bg-[#fbcd6f] hover:bg-[#f8bc46] hover:text-base transition-all delay-150 text-[#4E0114]
+                  bottom-0 h-7 w-[190px] right-2"
+                href={paths.findingPassword()}
+              >
+                بازیابی رمز عبور
+              </Link>
             </div>
           </form>
         </PopoverContent>
