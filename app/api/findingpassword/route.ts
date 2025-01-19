@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const email = (await formdata).get('email') as string
 
 
-    console.log("name : ", email);
+
 
     const user = await db.user.findUnique({
         where: { email: email as string }
