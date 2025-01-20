@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import path from "path";
 import fs from 'fs';
 import { db } from "@/app/db";
-import bcrypt from "bcryptjs";
+// import bcrypt from "bcryptjs";
 import { z } from "zod";
+import CryptoJS from "crypto-js";
 export async function POST(request: Request) {
 
     const schema = z.object({
@@ -35,14 +36,18 @@ export async function POST(request: Request) {
             fs.writeFileSync(filePath, Buffer.from(buffer) as Uint8Array);
             var imageUrl = `/uploads/imagesOfGroup/${username}.jpg`
 
-            const salt = await bcrypt.genSalt(5)
-            const hashPassword = await bcrypt.hashSync(password, salt)
+            //! HASHING
+
+            var ciphertext = CryptoJS.AES
+                .encrypt(password, process.env.CRYPTOSECRET as string).toString();
+
+
 
             const User = await db.user.create({
                 data: {
                     name: username,
                     email: email,
-                    password: hashPassword,
+                    password: ciphertext,
                     image: image.name !== "undefined" ? imageUrl : ''
                 }
             })

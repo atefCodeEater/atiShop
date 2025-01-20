@@ -1,5 +1,5 @@
 "use server"
-
+import CryptoJS from "crypto-js";
 import { signIn } from "@/app/auth";
 import { db } from "@/app/db"
 import { paths } from "@/app/paths";
@@ -30,10 +30,11 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: ["پسورد قبلی شما موجود نیست"], fault: true })
     }
 
-    const verify = await bcrypt.compareSync(prevPassword, prevPasswordFind?.password as string)
-    console.log("VERIFY : ", verify);
+    // Decrypt
+    var bytes = CryptoJS.AES.decrypt(prevPasswordFind?.password as string, process.env.CRYPTOSECRET as string);
+    var decodePassword = bytes.toString(CryptoJS.enc.Utf8);
 
-    if (!verify) {
+    if (decodePassword !== prevPassword) {
         return NextResponse.json({ message: ["پسورد قبلی شما اشتباه است"], fault: true })
     }
 
@@ -44,13 +45,17 @@ export async function POST(req: Request) {
         console.log(result.error.flatten().fieldErrors.password);
         return NextResponse.json({ message: result.error.flatten().fieldErrors.password, fault: true })
     }
+    //! HASHING
+
+    var ciphertext = CryptoJS.AES
+        .encrypt(password, process.env.CRYPTOSECRET as string).toString();
     try {
 
         const user = await db.user.update({
             where: {
                 id: id
             }, data: {
-                password: password
+                password: ciphertext
             }
         })
         console.log(user);
