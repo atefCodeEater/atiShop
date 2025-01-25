@@ -6,6 +6,8 @@ import { db } from "./db"
 import Credentials from "next-auth/providers/credentials"
 import { revalidatePath } from "next/cache"
 
+
+
 const prisma = new PrismaClient()
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
@@ -37,21 +39,24 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         throw new Error("Invalid credentials.")
       }
 
-
       // return user object with their profile data
       return user
+
     },
   }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) { // User is available during sign-in
         token.id = user.id
+        const User = await db.user.findUnique({ where: { id: user.id } })
+        token.isAdmin = User?.isAdmin || false
       }
       return token
     },
-    session({ session, token }: { session: any, token: any }) {
+    async session({ session, token }: { session: any, token: any }) {
       session.user.id = token.id
+      session.user.isAdmin = token.isAdmin;
       return session
     },
   },

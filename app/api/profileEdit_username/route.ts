@@ -3,6 +3,7 @@
 import { signIn } from "@/app/auth";
 import { db } from "@/app/db"
 import { paths } from "@/app/paths";
+import { JsonObject } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -10,6 +11,9 @@ export async function POST(req: Request) {
     const formdata = req.formData()
 
     const id = (await formdata).get('id') as string
+    const isAdminStringiFy = (await formdata).get('isAdmin') as string
+    const isAdmin = JSON.parse(isAdminStringiFy) as boolean
+    console.log("typeof isAdmin : ", isAdmin);
     var username = (await formdata).get('username') as string
     const prevUsername = (await formdata).get('prevUsername') as string
 

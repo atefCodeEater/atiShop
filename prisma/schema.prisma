@@ -41,19 +41,42 @@ model Session {
 }
  
 model User {
+  isAdmin       Boolean? @default(false)
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
   emailVerified DateTime? @map("email_verified")
   image         String?
-password         String?
-
+ password         String?
   accounts      Account[]
   sessions      Session[]
+
+products         Products[]
+
+
  
   @@map("users")
 }
+ model Groups {
+  isLastItem       Boolean? @default(false)
+  id            String    @id @default(cuid())
+  name          String?
+  image         String?
+groupLevel Int?
+  products   Products[]
+}
+ model Products {
  
+  id            String    @id @default(cuid())
+  name          String?
+  image         String?
+  userId        String  @map("user_id")
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId       String  @map("group_id")
+  group         Groups  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  
+}
 model VerificationToken {
   identifier String
   token      String

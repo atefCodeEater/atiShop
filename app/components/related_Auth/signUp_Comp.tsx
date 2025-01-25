@@ -18,6 +18,8 @@ import { string } from "zod";
 import { useDebounce } from "use-debounce";
 export default function SignUpComponent() {
   const [username, setUsername] = useState<string>("");
+  const [image, setImage] = useState<any>("");
+  const [scale, setScale] = useState<any>(0.6);
   const [password, setPassword] = useState<string>("");
   const [email, setEmail] = useState<string>("");
 
@@ -29,10 +31,8 @@ export default function SignUpComponent() {
     message: ["محل قرارگیری عکس"],
     level: 1,
   });
-  console.log("username : ", username);
-  const [image, setImage] = useState<any>("");
-  const [scale, setScale] = useState<any>(0.6);
   const editorRef = useRef<AvatarEditor | null>(null);
+  console.log("username : ", username);
 
   const handleDrop = (dropped: any) => {
     setImage(dropped[0]);

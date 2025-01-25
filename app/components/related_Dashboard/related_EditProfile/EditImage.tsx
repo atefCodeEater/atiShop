@@ -10,7 +10,9 @@ export default function EditImage({
   id,
   name,
   sessionImage,
+  isAdmin,
 }: {
+  isAdmin: boolean;
   id: string;
   name: string;
   sessionImage: string;
@@ -36,6 +38,8 @@ export default function EditImage({
 
     formdata.append("image", imageFile as File);
     formdata.append("name", name as string);
+    formdata.append("isAdmin", JSON.stringify(isAdmin));
+
     formdata.append("id", id as string);
 
     formdata.append("sessionImage", sessionImage as string);
@@ -86,8 +90,9 @@ export default function EditImage({
           )}
         </Dropzone>
       </div>
-      <div className="absolute  -rotate-90  h-3 w-24 left-[170px] bottom-32">
+      <div className="absolute   -rotate-90  h-3 w-24 left-[170px] bottom-32">
         <input
+          style={{ accentColor: "#7e0e2a" }}
           type="range"
           className=" h-3 w-24  "
           value={scale}

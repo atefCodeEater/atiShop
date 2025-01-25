@@ -4,7 +4,13 @@ import { useState } from "react";
 import Button_Spinner from "../../ReusableComponents/ButtonSpinner";
 import { useRouter } from "next/navigation";
 
-export default function EditPassword({ id }: { id: string }) {
+export default function EditPassword({
+  id,
+  isAdmin,
+}: {
+  id: string;
+  isAdmin: boolean;
+}) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<any>("");
 

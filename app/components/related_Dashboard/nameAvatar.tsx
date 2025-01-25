@@ -3,18 +3,19 @@
 import { Avatar } from "@nextui-org/react";
 
 export default function NameAndAvatar({
-  name,
+  title,
   image,
 }: {
-  name: string;
+  title: string;
+
   image: string;
 }) {
   return (
     <div
       className="flex justify-center
-         space-x-4 items-center text-2xl text-[#FFECC5] font-B_Traffic"
+         space-x-4 items-center text-xl text-[#FFECC5] font-B_Traffic"
     >
-      <div>{name}</div>
+      <div> {title} </div>
       <Avatar size="lg" src={image} />
     </div>
   );

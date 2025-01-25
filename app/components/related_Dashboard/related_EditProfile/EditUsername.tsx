@@ -5,7 +5,13 @@ import Button_Spinner from "../../ReusableComponents/ButtonSpinner";
 import { AiFillWechatWork } from "react-icons/ai";
 import { useRouter } from "next/navigation";
 
-export default function EditUsername({ id }: { id: string }) {
+export default function EditUsername({
+  id,
+  isAdmin,
+}: {
+  id: string;
+  isAdmin: boolean;
+}) {
   const [username, setUsername] = useState("");
   const [prevUsername, setPrevUsername] = useState("");
   const [message, setMessage] = useState("");
@@ -14,6 +20,8 @@ export default function EditUsername({ id }: { id: string }) {
   async function handleSubmit(e: any) {
     const formdata = new FormData();
     formdata.append("id", id);
+    formdata.append("isAdmin", JSON.stringify(isAdmin));
+
     formdata.append("username", username);
     formdata.append("prevUsername", prevUsername);
 

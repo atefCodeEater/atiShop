@@ -3,6 +3,7 @@ import AddProduct from "@/app/components/related_Dashboard/add_product";
 import ShowProducts from "@/app/components/related_Dashboard/show_products";
 import EditProduct from "@/app/components/related_Dashboard/edit_product";
 import EditProfile from "@/app/components/related_Dashboard/edit_profile";
+import AddGroup from "@/app/components/related_PanelAdmin/addGroup";
 
 import { Button } from "@nextui-org/react";
 import React, { useState } from "react";
@@ -11,24 +12,22 @@ export default function ArrangeAll({
   id,
   name,
   sessionImage,
+  isAdmin,
 }: {
   id: string;
+  isAdmin: boolean;
   name: string;
   sessionImage: string;
 }) {
   const [item, setItem] = useState<number>(0);
 
-  function delayRender(comp: React.ReactNode) {
-    setTimeout(() => {
-      return comp;
-    }, 1000);
-  }
   return (
     <div className="h-full w-full">
       <div className="space-x-1 flex justify-center  h-14">
-        <button
-          onClick={(e) => setItem(4)}
-          className={`rounded-md h-10 
+        {!isAdmin && (
+          <button
+            onClick={(e) => setItem(4)}
+            className={`rounded-md h-10 
             ${
               item === 4
                 ? "bg-[#FFECC5] translate-y-9  shadow-sm shadow-[#000000] text-[#4E0114] text-base"
@@ -38,9 +37,10 @@ export default function ArrangeAll({
           font-B_Traffic_Bold
                   border-1
                  border-[#FFECC5]  w-[190px] right-2`}
-        >
-          دیدن کالاها
-        </button>
+          >
+            دیدن کالاها
+          </button>
+        )}
         <button
           onClick={(e) => setItem(3)}
           className={`rounded-md h-10 
@@ -56,21 +56,27 @@ export default function ArrangeAll({
         >
           ویرایش کالا
         </button>
-        <button
-          onClick={(e) => setItem(2)}
-          className={`rounded-md h-10 
+        <div>
+          <button
+            onClick={(e) => setItem(2)}
+            className={`rounded-md h-10 
             ${
               item === 2
-                ? "bg-[#FFECC5] translate-y-9  shadow-sm shadow-[#000000] text-[#4E0114] text-base"
+                ? "bg-[#FFECC5] translate-y-9  text-[#4E0114] text-base"
                 : "  bg-[#4E0114] text-[#FFECC5] text-sm hover:text-base"
             } 
           transition-all 
           font-B_Traffic_Bold
                   border-1
                  border-[#FFECC5]  w-[190px] right-2`}
-        >
-          افزودن کالا
-        </button>
+          >
+            {!isAdmin ? "افزودن کالا" : "افزودن گروه"}
+          </button>
+          {item === 2 && (
+            <div className="bg-[#FFECC5] w-[190px] h-[153px] rounded-md"></div>
+          )}
+        </div>
+
         <div>
           <button
             onClick={(e) => setItem(1)}
@@ -96,13 +102,18 @@ export default function ArrangeAll({
           {(item === 1 && (
             <EditProfile
               sessionImage={sessionImage}
+              isAdmin={isAdmin}
               id={id as string}
               name={name as string}
             />
           )) ||
-            (item === 2 && <AddProduct id={id as string} />) ||
+            (item === 2 && !isAdmin ? (
+              <AddProduct id={id as string} />
+            ) : (
+              <AddGroup id={id as string} />
+            )) ||
             (item === 3 && <EditProduct id={id as string} />) ||
-            (item === 4 && <ShowProducts id={id as string} />)}
+            (!isAdmin && item === 4 && <ShowProducts id={id as string} />)}
         </div>
       }
     </div>

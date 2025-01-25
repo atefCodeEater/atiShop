@@ -27,14 +27,14 @@ export async function POST(request: Request) {
         if (result.success) {
 
             const buffer = await image?.arrayBuffer();
-            const uploadDir = path.join(process.cwd(), '/public/uploads/imagesOfGroup');
+            const uploadDir = path.join(process.cwd(), '/public/uploads/imagesOfUsers');
             // Ensure this directory exists
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
             }
             const filePath = path.join(uploadDir, `${username}.jpg`);
             fs.writeFileSync(filePath, Buffer.from(buffer) as Uint8Array);
-            var imageUrl = `/uploads/imagesOfGroup/${username}.jpg`
+            var imageUrl = `/uploads/imagesOfUsers/${username}.jpg`
 
             //! HASHING
 
@@ -48,7 +48,8 @@ export async function POST(request: Request) {
                     name: username,
                     email: email,
                     password: ciphertext,
-                    image: image.name !== "undefined" ? imageUrl : ''
+                    image: image.name !== "undefined" ? imageUrl : '',
+                    isAdmin: false
                 }
             })
             console.log("User in Api Submit", User);
