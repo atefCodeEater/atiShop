@@ -7,19 +7,22 @@ import AddGroup from "@/app/components/related_PanelAdmin/addGroup";
 
 import { Button } from "@nextui-org/react";
 import React, { useState } from "react";
+import { Groups } from "@prisma/client";
 
 export default function ArrangeAll({
+  groups,
   id,
   name,
   sessionImage,
   isAdmin,
 }: {
+  groups: Groups[];
   id: string;
   isAdmin: boolean;
   name: string;
   sessionImage: string;
 }) {
-  const [item, setItem] = useState<number>(0);
+  const [item, setItem] = useState<number>(2);
 
   return (
     <div className="h-full w-full">
@@ -110,7 +113,7 @@ export default function ArrangeAll({
             (item === 2 && !isAdmin ? (
               <AddProduct id={id as string} />
             ) : (
-              <AddGroup id={id as string} />
+              <AddGroup groups={groups} id={id as string} />
             )) ||
             (item === 3 && <EditProduct id={id as string} />) ||
             (!isAdmin && item === 4 && <ShowProducts id={id as string} />)}

@@ -7,6 +7,7 @@ import {
   Button,
   useDisclosure,
 } from "@nextui-org/react";
+
 import { canvasToFile } from "@/app/services/canvasToFile";
 
 interface ModalCompIterface {
@@ -14,11 +15,14 @@ interface ModalCompIterface {
   actionButtonTitle: string;
   icon: any;
   title: string;
+  indicator: number;
+  updateGroup: (messages: any) => Promise<any>;
 }
 import ButtonSpinner from "@/app/components/ReusableComponents/ButtonSpinner";
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 export default function ModalComponents(props: ModalCompIterface) {
   const [messageUi, setMessageUi] = useState<{
     message: string;
@@ -27,6 +31,16 @@ export default function ModalComponents(props: ModalCompIterface) {
     message: "",
     fault: false,
   });
+  const {
+    openButtonTitle,
+    actionButtonTitle,
+    icon,
+    title,
+    indicator,
+    updateGroup,
+  } = props;
+  const router = useRouter();
+
   const editorRef = useRef<AvatarEditor | null>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [groupName, setGroupName] = useState<string>("");
@@ -36,12 +50,6 @@ export default function ModalComponents(props: ModalCompIterface) {
     setImage(dropped[0]);
   };
 
-  const handleScaleChange = (value: number | number[]) => {
-    if (value) {
-      setScale(value);
-    }
-    // Update scale
-  };
   const handleSubmit = async (event: any) => {
     if (!groupName.length) {
       return setMessageUi({
@@ -54,7 +62,8 @@ export default function ModalComponents(props: ModalCompIterface) {
     const canvas = editorRef.current?.getImageScaledToCanvas();
     const imagefile = await canvasToFile(canvas, image.name, image.type);
     formdata.append("Image", imagefile as any);
-    formdata.append("groupName", setGroupName as any);
+    formdata.append("groupName", groupName as any);
+    formdata.append("indicator", JSON.stringify(indicator));
 
     formdata.append("user", JSON.stringify({ groupName } as any));
     const response = await fetch(
@@ -66,11 +75,12 @@ export default function ModalComponents(props: ModalCompIterface) {
     );
     const message = await response.json();
     if (response.ok) {
-      return setMessageUi({ message: message.message, fault: false });
+      setMessageUi({ message: message.message, fault: false });
+      setTimeout(() => {
+        router.refresh();
+      }, 1000);
     }
   };
-
-  const { openButtonTitle, actionButtonTitle, icon, title } = props;
 
   return (
     <>
@@ -87,7 +97,9 @@ text-[#4E0114]
       </div>
       <Modal backdrop="opaque" isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent
-          className="bg-[#4E0114] border-2 border-dashed border-[#FFECC5] flex justify-center items-center text-[#FFECC5]  w-[400px] h-[300px] 
+          className="bg-[#4E0114] border-2 
+           border-[#FFECC5] flex justify-center items-center text-[#FFECC5] 
+            w-[400px] h-[300px] 
                  rounded-md shadow-md shadow-[#000000]"
         >
           {(onClose) => (
@@ -98,6 +110,9 @@ text-[#4E0114]
                 <div className="mt-4">
                   <form action={handleSubmit}>
                     <input
+                      name="groupName"
+                      onChange={(e) => setGroupName(e.target.value)}
+                      value={groupName || ""}
                       type="text"
                       placeholder="نام گروه"
                       className="bg-[#FFECC5] text-[#4E0114] placeholder-[#4E0114] text-right
@@ -133,8 +148,20 @@ text-[#4E0114]
                           )}
                         </Dropzone>
                       </div>
+                      <div className="absolute   -rotate-90  h-3 w-24 left-[150px] top-[70px]">
+                        <input
+                          style={{ accentColor: "#7e0e2a" }}
+                          type="range"
+                          className=" h-3 w-24  "
+                          value={scale}
+                          step={0.01}
+                          min={0.6}
+                          max={10}
+                          onChange={(e) => setScale(e.target.value)}
+                        />
+                      </div>
                       <div
-                        className={`w-44 ${
+                        className={`text-sm w-44 ${
                           messageUi.fault ? "text-[#c91845]" : "text-[#FFECC5]"
                         } absolute top-[124px] left-2 text-center
                            h-6 font-B_Traffic_Bold`}

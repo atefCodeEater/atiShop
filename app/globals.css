@@ -25,3 +25,7 @@ body {
     text-wrap: balance;
   }
 }
+.custom-backdrop {
+  backdrop-filter: blur(50px);
+  background-color: rgba(0, 0, 0, 1);
+}

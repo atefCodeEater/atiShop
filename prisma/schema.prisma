@@ -64,6 +64,7 @@ products         Products[]
   image         String?
 groupLevel Int?
   products   Products[]
+  parent String?
 }
  model Products {
  

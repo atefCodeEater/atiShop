@@ -10,7 +10,10 @@ import { Avatar } from "@nextui-org/react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RxExit } from "react-icons/rx";
+import { db } from "../db";
 export default async function Dashboard() {
+  const groups = await db.groups.findMany();
+
   const session = await auth();
   if (!session?.user) {
     return notFound();
@@ -54,6 +57,7 @@ export default async function Dashboard() {
       </div>
       <div className="flex justify-center mt-20 w-full h-full">
         <ArrangeAll_PanelAdmin
+          groups={groups}
           isAdmin={session.user.isAdmin as boolean}
           sessionImage={session.user?.image as string}
           name={session.user?.name as string}
