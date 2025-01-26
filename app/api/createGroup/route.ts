@@ -41,9 +41,9 @@ export async function POST(req: Request) {
     } catch (err) {
 
     }
-    const groups = await db.groups.findMany()
+
     revalidatePath(paths.panelAdmin())
-    return NextResponse.json({ message: 'با موفقیت انجام شد', groups, fault: true })
+    return NextResponse.json({ message: 'با موفقیت انجام شد', fault: true })
 
 
 
