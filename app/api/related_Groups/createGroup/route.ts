@@ -11,6 +11,8 @@ import { paths } from "@/app/paths";
 export async function POST(req: Request) {
     const formdata = req.formData()
     const groupname = (await formdata).get('groupName') as string
+    const parent = (await formdata).get('parent') as string
+
     const Image = (await formdata).get('Image') as File
     const toStringify = JSON.parse((await formdata).get('indicator') as string)
     const indicator = Number(toStringify)
@@ -34,25 +36,19 @@ export async function POST(req: Request) {
                 image: imageUrl,
                 name: groupname,
                 isLastItem: false,
-                groupLevel: indicator
+                groupLevel: indicator,
+                parent: parent
             }
         })
-        console.log("group in Api createGroup :", group);
+
+        // console.log("group in Api createGroup :", group);
     } catch (err) {
 
     }
-
+    const allgroups = await db.groups.findMany()
+    // console.log("allgroups : ", allgroups);
     revalidatePath(paths.panelAdmin())
     return NextResponse.json({ message: 'با موفقیت انجام شد', fault: true })
-
-
-
-
-
-
-
-
-
 
 
 

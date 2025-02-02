@@ -16,7 +16,7 @@ interface ModalCompIterface {
   icon: any;
   title: string;
   indicator: number;
-  updateGroup: (messages: any) => Promise<any>;
+  parent: string;
 }
 import ButtonSpinner from "@/app/components/ReusableComponents/ButtonSpinner";
 import AvatarEditor from "react-avatar-editor";
@@ -31,14 +31,8 @@ export default function ModalComponents(props: ModalCompIterface) {
     message: "",
     fault: false,
   });
-  const {
-    openButtonTitle,
-    actionButtonTitle,
-    icon,
-    title,
-    indicator,
-    updateGroup,
-  } = props;
+  const { openButtonTitle, actionButtonTitle, icon, title, indicator, parent } =
+    props;
   const router = useRouter();
 
   const editorRef = useRef<AvatarEditor | null>(null);
@@ -63,17 +57,20 @@ export default function ModalComponents(props: ModalCompIterface) {
     const imagefile = await canvasToFile(canvas, image.name, image.type);
     formdata.append("Image", imagefile as any);
     formdata.append("groupName", groupName as any);
+    formdata.append("parent", parent as any);
+
     formdata.append("indicator", JSON.stringify(indicator));
 
     formdata.append("user", JSON.stringify({ groupName } as any));
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOTURL}/api/createGroup`,
+      `${process.env.NEXT_PUBLIC_ROOTURL}/api/related_Groups/createGroup`,
       {
         method: "POST",
         body: formdata,
       }
     );
     const message = await response.json();
+    console.log("message.allgroups : ", message.allgroups);
     if (response.ok) {
       setMessageUi({ message: message.message, fault: false });
       setTimeout(() => {
@@ -105,7 +102,7 @@ text-[#4E0114]
           {(onClose) => (
             <>
               <ModalBody>
-                <div className="font-B_Traffic_Bold">{title}</div>
+                <div className="font-B_Traffic_Bold ml-4">{title}</div>
 
                 <div className="mt-4">
                   <form action={handleSubmit}>
