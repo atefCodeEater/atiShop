@@ -14,7 +14,8 @@ export async function POST(req: Request) {
     const userItem = JSON.parse((await formdata).get('user') as string)
     const { id, groupLevel, prevLastGroup_id } = userItem
     console.log(userItem);
-    await db.groups.update({
+
+    prevLastGroup_id.length > 3 && await db.groups.update({
         where: {
             id: prevLastGroup_id as string,
 

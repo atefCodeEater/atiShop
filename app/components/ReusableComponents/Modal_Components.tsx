@@ -8,15 +8,16 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 
-import { canvasToFile } from "@/app/services/canvasToFile";
-
+import { handleSubmit } from "@/app/queries/Submit_forGroup";
 interface ModalCompIterface {
   openButtonTitle: string;
   actionButtonTitle: string;
   icon: any;
   title: string;
-  indicator: number;
+  groupLevel: number;
   parent: string;
+  setIndicator?: any;
+  outCss: string;
 }
 import ButtonSpinner from "@/app/components/ReusableComponents/ButtonSpinner";
 import AvatarEditor from "react-avatar-editor";
@@ -31,8 +32,16 @@ export default function ModalComponents(props: ModalCompIterface) {
     message: "",
     fault: false,
   });
-  const { openButtonTitle, actionButtonTitle, icon, title, indicator, parent } =
-    props;
+  const {
+    openButtonTitle,
+    actionButtonTitle,
+    icon,
+    title,
+    groupLevel,
+    parent,
+    setIndicator,
+    outCss,
+  } = props;
   const router = useRouter();
 
   const editorRef = useRef<AvatarEditor | null>(null);
@@ -44,50 +53,17 @@ export default function ModalComponents(props: ModalCompIterface) {
     setImage(dropped[0]);
   };
 
-  const handleSubmit = async (event: any) => {
-    if (!groupName.length) {
-      return setMessageUi({
-        message: "نام گروه وارد نشده است",
-        fault: true,
-      });
-    }
-    const formdata = new FormData();
-
-    const canvas = editorRef.current?.getImageScaledToCanvas();
-    const imagefile = await canvasToFile(canvas, image.name, image.type);
-    formdata.append("Image", imagefile as any);
-    formdata.append("groupName", groupName as any);
-    formdata.append("parent", parent as any);
-
-    formdata.append("indicator", JSON.stringify(indicator));
-
-    formdata.append("user", JSON.stringify({ groupName } as any));
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOTURL}/api/related_Groups/createGroup`,
-      {
-        method: "POST",
-        body: formdata,
-      }
-    );
-    const message = await response.json();
-    console.log("message.allgroups : ", message.allgroups);
-    if (response.ok) {
-      setMessageUi({ message: message.message, fault: false });
-      setTimeout(() => {
-        router.refresh();
-      }, 1000);
-    }
-  };
-
   return (
     <>
       <div
         onClick={onOpen}
-        className="cursor-pointer text-sm shadow-sm shadow-[#000000] bg-[#FFECC5]   
+        className={`cursor-pointer text-sm shadow-sm shadow-[#000000]
+           bg-[#FFECC5]   
 text-[#4E0114]
            mr-2  border-[#4E0114] border-2
-         font-B_Traffic_Bold  px-2 flex justify-center items-center transition-all 
-         delay-150 w-24 h-9 rounded-md "
+         font-B_Traffic_Bold  px-2 flex
+          justify-center items-center transition-all 
+         delay-150 w-24 ${outCss}  rounded-md `}
       >
         <h1 className="px-2">{openButtonTitle}</h1>
         {icon}
@@ -105,7 +81,20 @@ text-[#4E0114]
                 <div className="font-B_Traffic_Bold ml-4">{title}</div>
 
                 <div className="mt-4">
-                  <form action={handleSubmit}>
+                  <form
+                    action={async () =>
+                      await handleSubmit({
+                        groupName,
+                        setMessageUi,
+                        editorRef,
+                        image,
+                        groupLevel,
+                        router,
+                        parent,
+                        setIndicator,
+                      })
+                    }
+                  >
                     <input
                       name="groupName"
                       onChange={(e) => setGroupName(e.target.value)}

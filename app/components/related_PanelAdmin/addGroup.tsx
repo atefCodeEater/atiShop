@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@nextui-org/react";
 import { RxDropdownMenu } from "react-icons/rx";
+import { useRouter } from "next/navigation";
 
 export default function AddGroup({
   id,
@@ -27,6 +28,7 @@ export default function AddGroup({
     message: "",
     fault: false,
   });
+  const router = useRouter();
   const [uiGroup, setuiGroup] = useState<Groups[][]>([]);
 
   const [indicator, setIndicator] = useState<number>(1);
@@ -49,6 +51,7 @@ export default function AddGroup({
     );
     const message = await response.json();
     if (response.ok) {
+      router.refresh();
       return setMessageUi({ message: message.message, fault: false });
     }
   };
@@ -58,8 +61,20 @@ export default function AddGroup({
     var useinUiGroup: any = [];
     while (i <= indicator) {
       var withGroupLevel = groups.filter((group) => {
-        return group.groupLevel === i && !group.isLastItem;
+        if (i === 1) {
+          return group.groupLevel === i && !group.isLastItem;
+        } else {
+          return (
+            uiGroup.length &&
+            group.groupLevel === i &&
+            !group.isLastItem &&
+            uiGroup[uiGroup?.length - 1][
+              uiGroup[uiGroup?.length - 1]?.length - 1
+            ]?.name === group.parent
+          );
+        }
       });
+
       var withIsLast = groups.filter((group) => {
         return group.groupLevel === i && group.isLastItem;
       });
@@ -73,7 +88,7 @@ export default function AddGroup({
       i++;
     }
     setuiGroup(useinUiGroup);
-  }, [groups]);
+  }, [groups, indicator]);
   console.log("uiGroup :", uiGroup);
 
   var render_dropDowns = uiGroup[0]?.map((drop) => {
@@ -86,19 +101,21 @@ export default function AddGroup({
         <form action={makeLastItem}>
           <button
             type="submit"
-            onClick={() =>
-              setUserItems({
+            onClick={async () => {
+              await setIndicator(1);
+              await setUserItems({
                 id: drop.id,
                 groupLevel: drop.groupLevel as number,
                 prevLastGroup_id: uiGroup[0][uiGroup[0].length - 1]
                   .id as string,
-              })
-            }
-            className="cursor-pointer text-sm mb-[2px] overflow-auto shadow-sm shadow-[#000000] bg-[#FFECC5]   
+              });
+            }}
+            className={` cursor-pointer text-sm mb-[2px] overflow-auto shadow-sm shadow-[#000000]
+            bg-[#FFECC5]   
 text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
            mr-2  border-[#4E0114] border-2
          font-B_Traffic_Bold  px-2 flex justify-center items-center transition-all 
-         delay-150 min-w-32 h-9 rounded-md"
+         delay-150 min-w-32 h-9 rounded-md`}
           >
             {drop.name}
           </button>
@@ -112,41 +129,72 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
     });
     var render_subGroups = subGroups.map((sub) => {
       return (
-        <div className="flex" key={sub.id}>
-          <div
-            className="w-20 h-6 border-1 border-[#FFECC5]
-          flex justify-center items-center "
+        <div className="flex justify-end px-1 py-2 " key={sub.id}>
+          <form
+            action={async (e) => {
+              await makeLastItem(e);
+            }}
+            className="w-20 h-6 font-B_Traffic_Bold text-sm rounded-md
+             text-[#FFECC5] border-1  cursor-pointer  border-[#FFECC5]
+          flex justify-center items-center"
           >
-            {sub.name}
-          </div>
+            <button
+              onClick={() => {
+                setUserItems({
+                  id: sub.id,
+                  groupLevel: sub.groupLevel as number,
+                  prevLastGroup_id: groups.find((gr) => {
+                    return gr.groupLevel === sub.groupLevel && gr.isLastItem;
+                  })?.id as string,
+                });
+                setIndicator(sub.groupLevel as number);
+              }}
+              type="submit"
+            >
+              {sub.name}
+            </button>
+          </form>
         </div>
       );
     });
     return (
-      <div key={index} className="w-4/5 h-4/5 rounded-md bg-[#4E0114] ">
+      <div
+        key={index}
+        className="w-[400px] h-[150px] mb-2  rounded-md bg-[#4E0114] "
+      >
         <div className="flex border-[#FFECC5] border-dashed px-2 justify-center border-b-1 py-2">
-          <h1 className="text-[#FFECC5] text-lg text-center font-B_Traffic_Bold">
+          <h1 className="text-[#FFECC5] text-base text-center font-B_Traffic_Bold">
             {groupArr.length && groupArr[groupArr.length - 1]?.name}
           </h1>
-          <h1 className="text-[#FFECC5] ml-2 text-lg text-center font-B_Traffic_Bold">
+          <h1 className="text-[#FFECC5] ml-2 text-base text-center font-B_Traffic_Bold">
             گروه
           </h1>
         </div>
-        <div className="mt-2">
-          <div className="">{render_subGroups}</div>
-          <div className="w-16">
-            <Modal_addGroup
-              indicator={((groupArr[0]?.groupLevel as number) + 1) as number}
-              parent={groupArr[groupArr.length - 1]?.name as string}
-              title={`افزودن زیرگروه به ${groupArr[groupArr.length - 1]?.name}`}
-              actionButtonTitle="افزودن"
-              openButtonTitle="افزودن"
-              icon={
-                <div className="text-lg">
-                  <BiAddToQueue />
-                </div>
-              }
-            />
+        <div
+          className={`mt-2  flex h-auto ${
+            subGroups.length > 7 && "overflow-scroll"
+          } w-full items-start`}
+        >
+          <div className="w-full h-auto  items-center flex flex-row-reverse flex-wrap">
+            {render_subGroups}
+            <div className="w-28">
+              <Modal_addGroup
+                outCss="h-6"
+                groupLevel={((groupArr[0]?.groupLevel as number) + 1) as number}
+                setIndicator={setIndicator}
+                parent={groupArr[groupArr.length - 1]?.name as string}
+                title={`افزودن زیرگروه به ${
+                  groupArr[groupArr.length - 1]?.name
+                }`}
+                actionButtonTitle="افزودن"
+                openButtonTitle="افزودن"
+                icon={
+                  <div className="text-lg">
+                    <BiAddToQueue />
+                  </div>
+                }
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -154,12 +202,27 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
   });
   return (
     <div
-      className="w-[600px] h-auto max-h-72  
+      className={`${
+        uiGroup.length > 2 && "overflow-scroll"
+      } w-[600px] h-[400px] max-h-96  
                rounded-md  bg-[#FFECC5] mt-[98px] space-x-5 
-               -space-y-5 justify-center flex flex-wrap"
+                justify-center flex `}
     >
-      <div className="w-full flex justify-end py-2 mb-4">
-        <div>
+      {uiGroup.length ? (
+        <div className="px-4 py-2">{render_UiGroup as React.ReactNode}</div>
+      ) : (
+        <div className="bg-[#4E0114] w-[400px] h-[200px]  rounded-md shadow-md shadow-[#000000]">
+          <h1 className="flex justify-center items-center text-[#FFECC5] text-3xl">
+            {" "}
+            ...
+          </h1>
+        </div>
+      )}
+      <div
+        className="w-full flex flex-wrap space-y-4 justify-center py-2 
+       h-[100px]"
+      >
+        <div className="h-8">
           <Popover placement="bottom" backdrop="opaque">
             <PopoverTrigger>
               <div
@@ -167,7 +230,8 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
                  text-[#FFECC5]   
 bg-[#4E0114]
            mr-2  border-[#4E0114] border-2
-         font-B_Traffic_Bold  px-2 flex justify-end items-center transition-all 
+         font-B_Traffic_Bold  px-2 flex flex-wrap justify-end items-center
+          transition-all 
          delay-150 w-32 h-9 rounded-md "
               >
                 <div className="px-4">
@@ -183,25 +247,16 @@ bg-[#4E0114]
           </Popover>
         </div>
         <Modal_addGroup
+          outCss="h-9"
           parent=""
-          indicator={indicator}
+          setIndicator={setIndicator}
+          groupLevel={1}
           actionButtonTitle="افزودن"
           icon={<BiAddToQueue size={20} />}
           openButtonTitle="افزودن"
           title="نام و عکس گروه را وارد کنید"
         />
       </div>
-
-      {uiGroup.length ? (
-        (render_UiGroup as React.ReactNode)
-      ) : (
-        <div className="bg-[#4E0114] w-[400px] h-[200px]  rounded-md shadow-md shadow-[#000000]">
-          <h1 className="flex justify-center items-center text-[#FFECC5] text-3xl">
-            {" "}
-            ...
-          </h1>
-        </div>
-      )}
     </div>
   );
 }

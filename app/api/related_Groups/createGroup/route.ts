@@ -14,8 +14,8 @@ export async function POST(req: Request) {
     const parent = (await formdata).get('parent') as string
 
     const Image = (await formdata).get('Image') as File
-    const toStringify = JSON.parse((await formdata).get('indicator') as string)
-    const indicator = Number(toStringify)
+    const toStringify = JSON.parse((await formdata).get('groupLevel') as string)
+    const groupLevel = Number(toStringify)
 
 
 
@@ -30,13 +30,20 @@ export async function POST(req: Request) {
     fs.writeFileSync(path.join(pathImage, `${groupname}.jpg`), Buffer.from(imageBuffer))
     const imageUrl = `uploads/groupsImages/${groupname}.jpg`
     try {
+        await db.groups.updateMany({
+            where: {
+                groupLevel
+            }, data: {
+                isLastItem: false
+            }
+        })
 
         const group = await db.groups.create({
             data: {
                 image: imageUrl,
                 name: groupname,
-                isLastItem: false,
-                groupLevel: indicator,
+                isLastItem: true,
+                groupLevel: groupLevel,
                 parent: parent
             }
         })
