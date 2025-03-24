@@ -1,4 +1,5 @@
 import { canvasToFile } from "@/app/services/canvasToFile";
+import { Groups } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
 
 
@@ -15,9 +16,11 @@ interface handleSubmit_Group {
     router: any
     parent: string
     setIndicator?: any
+    groups: Groups
+    id?: string
 }
 
-export const handleSubmit = async ({ groupName, setIndicator, setMessageUi, editorRef, image,
+export const handleSubmit = async ({ groups, groupName, setIndicator, setMessageUi, editorRef, image,
     groupLevel, router, parent
 }: handleSubmit_Group) => {
     if (!groupName.length) {

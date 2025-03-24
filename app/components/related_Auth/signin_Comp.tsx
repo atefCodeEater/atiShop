@@ -6,48 +6,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@nextui-org/react";
-import Image from "next/image";
+
 import { useSignIn } from "@/app/action/signIn";
-import { useState } from "react";
+import { credencialAuth } from "@/app/action/credencial";
+
 import Button_Spinner from "../ReusableComponents/ButtonSpinner";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/dist/server/api-utils";
-import { useRouter } from "next/navigation";
-import { useFormStatus } from "react-dom";
+
 import Link from "next/link";
 import { paths } from "@/app/paths";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCustomQuery } from "@/app/hooks/useQuery_customHook";
 export default function SignInComponent() {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [messageUi, setMessageUi] = useState<{
-    message: string;
-    fault: boolean;
-  }>({ message: "", fault: false });
-  const router = useRouter();
+  const queryclient = useQueryClient();
 
-  const handleSubmit = async (e: any) => {
-    const formdata = new FormData();
-
-    formdata.append("email", email);
-    formdata.append("password", password);
-
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOTURL}/api/authentication/credencial`,
-      {
-        method: "POST",
-        body: formdata,
-      }
-    );
-    const message = await response.json();
-    if (response.ok) {
-      setMessageUi(message);
-      setTimeout(() => {
-        router.refresh();
-      }, 1000);
-      console.log(message.message);
-    }
-  };
-
+  const signInCredencial_Mutatation = useMutation({
+    mutationFn: credencialAuth,
+  });
   return (
     <div className=" ">
       <Popover backdrop="opaque" placement="left-end">
@@ -90,13 +64,22 @@ export default function SignInComponent() {
             ورود با ایمیل و رمز عبور
           </h1>
           <form
-            action={handleSubmit}
+            onSubmit={(e) => {
+              e.preventDefault();
+              signInCredencial_Mutatation.mutate(
+                new FormData(e.currentTarget),
+                {
+                  onSuccess: () => {
+                    queryclient.invalidateQueries({ queryKey: ["forSession"] });
+                  },
+                }
+              );
+            }}
             className=" w-full h-[65%]  absolute bottom-1"
           >
             <div className="grid grid-cols-15 h-full relative w-full font-B_Traffic ">
               <input
-                value={email || ""}
-                onChange={(event) => setEmail(event.target.value)}
+                // onChange={(event) => setEmail(event.target.value)}
                 name="email"
                 className="text-right font-B_Traffic_Bold top-2 absolute w-[190px] 
                 left-2 rounded-sm h-8 mb-1 
@@ -106,8 +89,8 @@ export default function SignInComponent() {
                 placeholder="ایمیل "
               />
               <input
-                onChange={(event) => setPassword(event.target.value)}
-                value={password || ""}
+                // onChange={(event) => setPassword(event.target.value)}
+
                 name="password"
                 className="text-right font-B_Traffic_Bold top-12 absolute
                  w-[190px] left-2 rounded-sm h-8 mb-1 
@@ -119,10 +102,12 @@ export default function SignInComponent() {
               <div
                 className={` rounded-md h-6 absolute font-B_Traffic_Bold
                 ${
-                  messageUi.fault ? "text-[#bb284d]" : "text-[#FFECC5]"
+                  signInCredencial_Mutatation.error?.message.length
+                    ? "text-[#bb284d]"
+                    : "text-[#FFECC5]"
                 }  bottom-[82px] w-[190px] right-2`}
               >
-                {messageUi.message}
+                {signInCredencial_Mutatation.error?.message}
               </div>
               <Button_Spinner
                 children="ورود"

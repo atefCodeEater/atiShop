@@ -52,8 +52,7 @@ export async function POST(req: Request) {
     } catch (err) {
 
     }
-    const allgroups = await db.groups.findMany()
-    // console.log("allgroups : ", allgroups);
+
     revalidatePath(paths.panelAdmin())
     return NextResponse.json({ message: 'با موفقیت انجام شد', fault: true })
 

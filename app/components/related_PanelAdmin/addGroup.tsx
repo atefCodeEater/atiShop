@@ -1,10 +1,16 @@
 "use client";
 
-import { BiAddToQueue } from "react-icons/bi";
+import { BiAddToQueue, BiTrash } from "react-icons/bi";
 import Modal_addGroup from "@/app/components/ReusableComponents/Modal_Components";
+import Modal_deleteGroup from "@/app/components/ReusableComponents/Modal_Components";
+import { cache, Suspense } from "react";
 import { Groups } from "@prisma/client";
 import React, { useEffect, useState } from "react";
+import { handleSubmit } from "@/app/queries/Submit_forGroup";
+import { deleteGroup } from "@/app/queries/deleteGroup";
+
 import {
+  Avatar,
   dropdown,
   Popover,
   PopoverContent,
@@ -12,7 +18,10 @@ import {
 } from "@nextui-org/react";
 import { RxDropdownMenu } from "react-icons/rx";
 import { useRouter } from "next/navigation";
-
+import Skeleton_comp from "../ReusableComponents/skeleton";
+import { useFormStatus } from "react-dom";
+import { FcDeleteDatabase } from "react-icons/fc";
+import { useMutation } from "@tanstack/react-query";
 export default function AddGroup({
   id,
 
@@ -30,7 +39,8 @@ export default function AddGroup({
   });
   const router = useRouter();
   const [uiGroup, setuiGroup] = useState<Groups[][]>([]);
-
+  const { pending } = useFormStatus();
+  console.log(pending);
   const [indicator, setIndicator] = useState<number>(1);
   const [userItems, setUserItems] = useState<{
     id: string;
@@ -89,7 +99,8 @@ export default function AddGroup({
     }
     setuiGroup(useinUiGroup);
   }, [groups, indicator]);
-  console.log("uiGroup :", uiGroup);
+
+  console.log("groups :", groups);
 
   var render_dropDowns = uiGroup[0]?.map((drop) => {
     return (
@@ -160,25 +171,72 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
     return (
       <div
         key={index}
-        className="w-[400px] h-[150px] mb-2  rounded-md bg-[#4E0114] "
+        className="w-[400px] h-[200px] mb-4  rounded-md bg-[#4E0114] "
       >
-        <div className="flex border-[#FFECC5] border-dashed px-2 justify-center border-b-1 py-2">
-          <h1 className="text-[#FFECC5] text-base text-center font-B_Traffic_Bold">
+        <div
+          className="flex w-full  border-[#FFECC5] border-dashed px-2 justify-center items-center 
+        space-x-2 border-b-1 py-2"
+        >
+          <h1 className="text-[#FFECC5] w-auto  text-base text-center font-B_Traffic_Bold">
             {groupArr.length && groupArr[groupArr.length - 1]?.name}
           </h1>
           <h1 className="text-[#FFECC5] ml-2 text-base text-center font-B_Traffic_Bold">
             گروه
           </h1>
+          <Avatar
+            className=" rounded-md"
+            alt={
+              (groupArr.length &&
+                (groupArr[groupArr.length - 1]?.name as string)) ||
+              ""
+            }
+            src={
+              (groupArr.length &&
+                (groupArr[groupArr.length - 1]?.image as string)) ||
+              ""
+            }
+          />
+          <div
+            className="border-2 border-[#aa1717] transition-all delay-150 cursor-pointer 
+            text-xl  w-8 h-8 flex
+           hover:text-2xl justify-center items-center  rounded-md"
+          >
+            <Modal_deleteGroup
+              parent=""
+              id={groupArr[groupArr.length - 1]?.id as string}
+              groups={groups}
+              Query={deleteGroup}
+              outCss="h-9"
+              name={
+                (groupArr.length &&
+                  (groupArr[groupArr.length - 1]?.name as string)) ||
+                ""
+              }
+              setIndicator={setIndicator}
+              groupLevel={
+                groupArr.length &&
+                (groupArr[groupArr.length - 1]?.groupLevel as number)
+              }
+              actionButtonTitle="حذف"
+              openButtonTitle="حذف"
+              title="نام و عکس گروه را وارد کنید"
+              icon={<BiTrash className="text-[#aa1717]  " />}
+            />
+          </div>
         </div>
         <div
-          className={`mt-2  flex h-auto ${
-            subGroups.length > 7 && "overflow-scroll"
+          className={`mt-2  flex h-[120px]  ${
+            subGroups.length > 11 && " overflow-y-scroll"
           } w-full items-start`}
         >
-          <div className="w-full h-auto  items-center flex flex-row-reverse flex-wrap">
+          <div
+            className={`w-full h-auto  items-center flex flex-row-reverse flex-wrap`}
+          >
             {render_subGroups}
             <div className="w-28">
               <Modal_addGroup
+                groups={groups}
+                Query={handleSubmit}
                 outCss="h-6"
                 groupLevel={((groupArr[0]?.groupLevel as number) + 1) as number}
                 setIndicator={setIndicator}
@@ -203,30 +261,32 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
   return (
     <div
       className={`${
-        uiGroup.length > 2 && "overflow-scroll"
-      } w-[600px] h-[400px] max-h-96  
+        uiGroup.length > 2 && "overflow-x-hidden overflow-y-scroll"
+      } w-[600px] h-[440px] 
                rounded-md  bg-[#FFECC5] mt-[98px] space-x-5 
                 justify-center flex `}
     >
-      {uiGroup.length ? (
-        <div className="px-4 py-2">{render_UiGroup as React.ReactNode}</div>
-      ) : (
-        <div className="bg-[#4E0114] w-[400px] h-[200px]  rounded-md shadow-md shadow-[#000000]">
-          <h1 className="flex justify-center items-center text-[#FFECC5] text-3xl">
-            {" "}
-            ...
-          </h1>
-        </div>
-      )}
+      <div className="px-4 py-2">
+        {!uiGroup.length ? (
+          <Skeleton_comp
+            outCss="w-[380px] bg-[#4E0114] ml-6 mt-2 h-[120px] space-y-5 p-4"
+            numOfRow={4}
+            rowCss="bg-[#4E0114] h-12 rounded-lg"
+          />
+        ) : (
+          (render_UiGroup as React.ReactNode)
+        )}
+      </div>
+
       <div
-        className="w-full flex flex-wrap space-y-4 justify-center py-2 
+        className="w-full flex flex-wrap  space-y-12 justify-center  py-2 
        h-[100px]"
       >
-        <div className="h-8">
+        <div className="h-8 fixed">
           <Popover placement="bottom" backdrop="opaque">
             <PopoverTrigger>
               <div
-                className="cursor-pointer text-sm shadow-sm shadow-[#000000]
+                className="cursor-pointer  text-sm shadow-sm shadow-[#000000]
                  text-[#FFECC5]   
 bg-[#4E0114]
            mr-2  border-[#4E0114] border-2
@@ -241,21 +301,25 @@ bg-[#4E0114]
                 <RxDropdownMenu className=" text-3xl text-right" />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="bg-transparent">
+            <PopoverContent className="bg-transparent ">
               {render_dropDowns}
             </PopoverContent>
           </Popover>
         </div>
-        <Modal_addGroup
-          outCss="h-9"
-          parent=""
-          setIndicator={setIndicator}
-          groupLevel={1}
-          actionButtonTitle="افزودن"
-          icon={<BiAddToQueue size={20} />}
-          openButtonTitle="افزودن"
-          title="نام و عکس گروه را وارد کنید"
-        />
+        <div className="fixed ">
+          <Modal_addGroup
+            groups={groups}
+            Query={handleSubmit}
+            outCss="h-9"
+            parent=""
+            setIndicator={setIndicator}
+            groupLevel={1}
+            actionButtonTitle="افزودن"
+            icon={<BiAddToQueue size={20} />}
+            openButtonTitle="افزودن"
+            title="نام و عکس گروه را وارد کنید"
+          />
+        </div>
       </div>
     </div>
   );

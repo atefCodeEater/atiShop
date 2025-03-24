@@ -13,7 +13,7 @@ import { RxExit } from "react-icons/rx";
 import { db } from "../db";
 export default async function Dashboard() {
   const groups = await db.groups.findMany();
-  console.log("groups page : ", groups);
+  // console.log("groups page : ", groups);
 
   const session = await auth();
   if (!session?.user) {

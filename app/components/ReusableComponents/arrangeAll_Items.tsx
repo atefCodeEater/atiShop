@@ -8,6 +8,7 @@ import AddGroup from "@/app/components/related_PanelAdmin/addGroup";
 import { Button } from "@nextui-org/react";
 import React, { useState } from "react";
 import { Groups } from "@prisma/client";
+import { Group } from "next/dist/shared/lib/router/utils/route-regex";
 
 export default function ArrangeAll({
   groups,
@@ -16,7 +17,7 @@ export default function ArrangeAll({
   sessionImage,
   isAdmin,
 }: {
-  groups: Groups[];
+  groups?: Groups[];
   id: string;
   isAdmin: boolean;
   name: string;
@@ -113,7 +114,7 @@ export default function ArrangeAll({
             (item === 2 && !isAdmin ? (
               <AddProduct id={id as string} />
             ) : (
-              <AddGroup groups={groups} id={id as string} />
+              <AddGroup groups={groups as Groups[]} id={id as string} />
             )) ||
             (item === 3 && <EditProduct id={id as string} />) ||
             (!isAdmin && item === 4 && <ShowProducts id={id as string} />)}

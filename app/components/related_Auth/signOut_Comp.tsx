@@ -13,18 +13,17 @@ export default function SignOutComponent({
   redirect?: boolean;
   item?: any;
 }) {
-  const router = useRouter();
   const handlesignOut = async (e: any) => {
     await useSignOut();
-    if (redirect) {
-      return router.push("/");
-    } else {
-      return router.refresh();
-    }
   };
   return (
     <div>
-      <form action={handlesignOut}>
+      <form
+        onSubmit={(e: any) => {
+          e.preventDefault();
+          signOut();
+        }}
+      >
         <button type="submit" className={className}>
           خروج
           {item}

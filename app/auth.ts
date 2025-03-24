@@ -13,7 +13,7 @@ const prisma = new PrismaClient()
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   session: { strategy: 'jwt' },
-
+  trustHost: true,
   providers: [Google({
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,

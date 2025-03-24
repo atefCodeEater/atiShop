@@ -14,25 +14,28 @@ import Dropzone from "react-dropzone";
 import AvatarEditor from "react-avatar-editor";
 import { canvasToFile } from "@/app/services/canvasToFile";
 import Button_Spinner from "../ReusableComponents/ButtonSpinner";
-import { string } from "zod";
-import { useDebounce } from "use-debounce";
+import { submiting } from "@/app/action/submitting";
+import { useCustomQuery } from "@/app/hooks/useQuery_customHook";
+import { useMutation } from "@tanstack/react-query";
 export default function SignUpComponent() {
-  const [username, setUsername] = useState<string>("");
   const [image, setImage] = useState<any>("");
   const [scale, setScale] = useState<any>(0.6);
-  const [password, setPassword] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-
-  const [rePassword, setRePassword] = useState<string>("");
-  const [messageUi, setMessageUi] = useState<{
-    message: string[];
-    level: number;
-  }>({
-    message: ["محل قرارگیری عکس"],
-    level: 1,
+  const submitQuery = useMutation({
+    mutationFn: submiting,
   });
+
+  const errors = submitQuery.isError && JSON.parse(submitQuery.error.message);
+  console.log("errors: ", errors);
+  const renderErrors =
+    submitQuery.isError &&
+    errors?.message.map((message: any) => {
+      return (
+        <div key={message}>
+          <div>{message}</div>
+        </div>
+      );
+    });
   const editorRef = useRef<AvatarEditor | null>(null);
-  console.log("username : ", username);
 
   const handleDrop = (dropped: any) => {
     setImage(dropped[0]);
@@ -44,58 +47,14 @@ export default function SignUpComponent() {
     }
     // Update scale
   };
-  const handleSubmit = async (event: any) => {
-    if (password !== rePassword) {
-      return setMessageUi({
-        message: ["پسورد و تکرار پسورد برابر نیست"],
-        level: 3,
-      });
-    }
-    if (!username.length) {
-      return setMessageUi({
-        message: ["یوزرنیم وارد نشده است"],
-        level: 3,
-      });
-    }
-    const formdata = new FormData();
-
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    const formdata = new FormData(e.currentTarget);
     const canvas = editorRef.current?.getImageScaledToCanvas();
     const imagefile = await canvasToFile(canvas, image.name, image.type);
     formdata.append("Image", imagefile as any);
-
-    formdata.append(
-      "user",
-      JSON.stringify({ username, password, email } as any)
-    );
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOTURL}/api/authentication/submiting`,
-      {
-        method: "POST",
-        body: formdata,
-      }
-    );
-    const message = await response.json();
-    if (response.ok) {
-      if (message.messages) {
-        if (message.messages.email) {
-          return setMessageUi({ message: message.messages.email, level: 3 });
-        }
-        if (message.messages.password) {
-          return setMessageUi({ message: message.messages.password, level: 3 });
-        }
-      }
-      return setMessageUi({
-        message: message.message,
-        level: message.level,
-      });
-    } else {
-      return setMessageUi({
-        message: message.message,
-        level: message.level,
-      });
-    }
+    submitQuery.mutate(formdata);
   };
-
   return (
     <div className=" ">
       <Popover backdrop="opaque" placement="left-end">
@@ -113,7 +72,7 @@ export default function SignUpComponent() {
           className="bg-[#4E0114] 
           border-1 border-[#FFECC5] 
    
-          rounded-md text-center p-1 text-[#FFECC5] w-52 h-[360px] relative"
+          rounded-md text-center p-1 text-[#FFECC5] w-52 h-[400px] relative"
         >
           <h1
             className="absolute text-center w-full
@@ -122,12 +81,11 @@ export default function SignUpComponent() {
             فرم ثبت نام
           </h1>
           <form
-            action={handleSubmit}
-            className=" w-full h-[330px] absolute bottom-0"
+            onSubmit={handleSubmit}
+            className=" w-full h-[360px] absolute bottom-0"
           >
             <div className="grid grid-cols-15 h-full relative w-full font-B_Traffic ">
               <input
-                value={username || ""}
                 type="text"
                 name="username"
                 className="text-right font-B_Traffic_Bold top-3 absolute w-[190px] 
@@ -136,12 +94,8 @@ export default function SignUpComponent() {
                 border-1
                  border-[#FFECC5]  "
                 placeholder="نام کاربری "
-                onChange={(e) => {
-                  return setUsername(e.target.value as string);
-                }}
               />
               <input
-                value={email || ""}
                 type="text"
                 name="email"
                 className="text-right font-B_Traffic_Bold top-[123px] absolute w-[190px] 
@@ -150,12 +104,8 @@ export default function SignUpComponent() {
                 border-1
                  border-[#FFECC5]  "
                 placeholder="ایمیل"
-                onChange={(e) => {
-                  setEmail(e.target.value as string);
-                }}
               />
               <input
-                value={password || ""}
                 name="password"
                 type="text"
                 className="text-right font-B_Traffic_Bold top-[49px] absolute
@@ -164,13 +114,9 @@ export default function SignUpComponent() {
                 border-1
                  border-[#FFECC5] "
                 placeholder="رمز عبور"
-                onChange={(e) => {
-                  setPassword(e.target.value as string);
-                }}
               />
               <input
                 name="repeatPassword"
-                value={rePassword || ""}
                 type="text"
                 className="text-right font-B_Traffic_Bold top-[86px] absolute
                  w-[190px] left-2 rounded-sm h-8 mb-1 
@@ -179,33 +125,24 @@ export default function SignUpComponent() {
                 border-1
                  border-[#FFECC5] "
                 placeholder="تکرار رمز عبور"
-                onChange={(e) => {
-                  setRePassword(e.target.value as string);
-                }}
               />
 
               <div
                 className={`absolute text-xs w-[190px] 
-                   ${messageUi.level === 3 && "text-red-500"}  
-                   ${messageUi.level === 2 && "text-green-500"}
+                   ${submitQuery.error && "text-red-500"}  
+                   ${submitQuery.data && "text-green-500"}
                    ${
-                     messageUi.level === 1 &&
-                     "text-sm flex items-center justify-center text-[#FFECC5]"
+                     submitQuery.error &&
+                     "text-sm flex flex-wrap items-center justify-center text-[#FFECC5]"
                    }  
 
 
               top-[160px] h-8 left-2`}
               >
-                {messageUi.message.map((message: any) => {
-                  return (
-                    <div key={message}>
-                      <div>{message}</div>
-                    </div>
-                  );
-                })}
+                {renderErrors}
                 <div
                   style={{ scale: 0.22 }}
-                  className="absolute -bottom-[70px]  right-14  scale-y-50 w-[190px] h-28 "
+                  className="absolute -bottom-[90px]  right-14  scale-y-50 w-[190px] h-28 "
                 >
                   <Dropzone onDrop={handleDrop} noClick noKeyboard>
                     {({ getRootProps, getInputProps }) => (
