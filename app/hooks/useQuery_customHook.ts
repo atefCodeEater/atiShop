@@ -2,12 +2,13 @@
 
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 
-export const useCustomQuery = (
+export const useCustomQuery = <T>(
     queryKey: string[],
-    fetcher: any,
-    configOptions?: UseQueryOptions
+    fetcher: () => Promise<T>,
+    configOptions?: UseQueryOptions<T>,
+
 ) => {
-    return useQuery<any>({
+    return useQuery<T>({
         queryKey,
         queryFn: () => fetcher(),
         ...configOptions,

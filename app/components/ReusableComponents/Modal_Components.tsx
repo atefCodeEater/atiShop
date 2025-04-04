@@ -18,7 +18,14 @@ interface ModalCompIterface {
   parent: string;
   setIndicator?: any;
   outCss: string;
-  Query: any;
+  Query: UseMutationResult<
+    {
+      message: string;
+    },
+    Error,
+    FormData,
+    unknown
+  >;
   groups: Groups[];
   id?: string;
 }
@@ -28,14 +35,11 @@ import Dropzone from "react-dropzone";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Groups } from "@prisma/client";
+import { UseMutationResult, useQueryClient } from "@tanstack/react-query";
+import { canvasToFile } from "@/app/services/canvasToFile";
 export default function ModalComponents(props: ModalCompIterface) {
-  const [messageUi, setMessageUi] = useState<{
-    message: string;
-    fault: boolean;
-  }>({
-    message: "",
-    fault: false,
-  });
+  const queryclient = useQueryClient();
+
   const {
     id,
     groups,
@@ -50,11 +54,9 @@ export default function ModalComponents(props: ModalCompIterface) {
     setIndicator,
     outCss,
   } = props;
-  const router = useRouter();
 
   const editorRef = useRef<AvatarEditor | null>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [groupName, setGroupName] = useState<string>("");
   const [image, setImage] = useState<any>("");
   const [scale, setScale] = useState<any>(0.6);
   const handleDrop = (dropped: any) => {
@@ -100,21 +102,40 @@ text-[#4E0114]
                 >
                   <form
                     className="flex justify-center h-full flex-wrap"
-                    action={async () =>
-                      await Query({
-                        id,
-                        groups,
-                        groupName,
-                        setMessageUi,
-                        editorRef,
-                        image,
-                        name,
-                        groupLevel,
-                        router,
-                        parent,
-                        setIndicator,
-                      })
-                    }
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formdata = new FormData(e.currentTarget);
+                      const canvas =
+                        editorRef.current?.getImageScaledToCanvas();
+                      const imagefile = await canvasToFile(
+                        canvas,
+                        image.name,
+                        image.type
+                      );
+                      formdata.append("Image", imagefile as any);
+
+                      formdata.append("parent", parent as any);
+
+                      formdata.append("groupLevel", JSON.stringify(groupLevel));
+
+                      Query.mutate(formdata, {
+                        onSuccess: (data: any) => {
+                          queryclient.setQueryData(
+                            ["groups"],
+                            (oldData: Groups[]) => {
+                              const result = oldData.map((res) => {
+                                if (res.groupLevel === groupLevel) {
+                                  return { ...res, isLastItem: false };
+                                }
+                                return res;
+                              });
+
+                              return [...result, data];
+                            }
+                          );
+                        },
+                      });
+                    }}
                   >
                     {actionButtonTitle === "حذف" ? (
                       <div className="w-full flex justify-center flex-wrap h-full">
@@ -141,8 +162,6 @@ text-[#4E0114]
                         </div>
                         <input
                           name="groupName"
-                          onChange={(e) => setGroupName(e.target.value)}
-                          value={groupName || ""}
                           type="text"
                           placeholder="نام گروه"
                           className="bg-[#FFECC5]  text-[#4E0114]
@@ -193,13 +212,11 @@ text-[#4E0114]
                         </div>
                         <div
                           className={`text-sm w-full ${
-                            messageUi.fault
-                              ? "text-[#c91845]"
-                              : "text-[#FFECC5]"
+                            Query.isError ? "text-[#c91845]" : "text-[#FFECC5]"
                           }  94px]  text-center
                            h-6 font-B_Traffic_Bold`}
                         >
-                          {messageUi.message}
+                          {Query.data?.message || Query.error?.message}
                         </div>
                         <ButtonSpinner
                           className="rounded-md    font-B_Traffic_Bold

@@ -16,7 +16,7 @@ export default function NameAndAvatar({
          space-x-4 items-center text-xl text-[#FFECC5] font-B_Traffic"
     >
       <div> {title} </div>
-      <Avatar size="lg" src={image} />
+      <Avatar key={image} size="lg" src={image} />
     </div>
   );
 }

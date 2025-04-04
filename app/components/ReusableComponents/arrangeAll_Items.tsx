@@ -11,13 +11,11 @@ import { Groups } from "@prisma/client";
 import { Group } from "next/dist/shared/lib/router/utils/route-regex";
 
 export default function ArrangeAll({
-  groups,
   id,
   name,
   sessionImage,
   isAdmin,
 }: {
-  groups?: Groups[];
   id: string;
   isAdmin: boolean;
   name: string;
@@ -114,7 +112,7 @@ export default function ArrangeAll({
             (item === 2 && !isAdmin ? (
               <AddProduct id={id as string} />
             ) : (
-              <AddGroup groups={groups as Groups[]} id={id as string} />
+              <AddGroup id={id as string} />
             )) ||
             (item === 3 && <EditProduct id={id as string} />) ||
             (!isAdmin && item === 4 && <ShowProducts id={id as string} />)}

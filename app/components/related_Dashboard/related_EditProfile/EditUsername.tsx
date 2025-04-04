@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Button_Spinner from "../../ReusableComponents/ButtonSpinner";
-import { AiFillWechatWork } from "react-icons/ai";
-import { useRouter } from "next/navigation";
-
+import { changeUsername } from "@/app/action/userProfile/profileEdit_username";
+import { useCustomQuery } from "@/app/hooks/useQuery_customHook";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { forSession } from "@/app/action/sessionAction";
+import { Session } from "next-auth";
 export default function EditUsername({
   id,
   isAdmin,
@@ -12,53 +13,51 @@ export default function EditUsername({
   id: string;
   isAdmin: boolean;
 }) {
-  const [username, setUsername] = useState("");
-  const [prevUsername, setPrevUsername] = useState("");
-  const [message, setMessage] = useState("");
-  const router = useRouter();
+  const queryclient = useQueryClient();
+  const session = useCustomQuery(["forSession"], forSession, {
+    queryKey: ["forSession"],
+    queryFn: () => forSession(),
+    initialData() {
+      const cacheData = queryclient.getQueryData(["forSession"]);
 
+      if (cacheData) return cacheData;
+      return undefined;
+    },
+  });
+
+  const changeUsernameQuery = useMutation({ mutationFn: changeUsername });
   async function handleSubmit(e: any) {
-    const formdata = new FormData();
+    e.preventDefault();
+    const formdata = new FormData(e.currentTarget);
     formdata.append("id", id);
     formdata.append("isAdmin", JSON.stringify(isAdmin));
-
-    formdata.append("username", username);
-    formdata.append("prevUsername", prevUsername);
-
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOTURL}/api/profileEdit_username`,
-      {
-        method: "POST",
-        body: formdata,
-      }
-    );
-    const message = await response.json();
-    if (response.ok) {
-      setTimeout(() => {
-        router.refresh();
-      }, 1000);
-      setMessage(message.message);
-      console.log(message.message);
-    }
+    changeUsernameQuery.mutate(formdata, {
+      onSuccess: () => {
+        queryclient.invalidateQueries({ queryKey: ["forSession"] });
+      },
+    });
   }
   return (
     <div className=" w-60 h-64 border-1 bg-[#4E0114] rounded-lg border-opacity-50 border-dashed border-[#FFECC5] flex justify-center">
       {/* //! FOR USERNAME */}
-      <form action={handleSubmit} className="grid grid-cols-1  ">
+      <form
+        onSubmit={async (e) => handleSubmit(e)}
+        className="grid grid-cols-1  "
+      >
         <h1 className="w-full mb-2 mt-2 text-[#FFECC5] font-B_Traffic_Bold text-center">
           تغییر نام کاربری
         </h1>
         <input
-          className="text-right text-sm px-1 font-B_Traffic_Bold top-12 
+          className="text-right text-sm px-1 placeholder:opacity-35 font-B_Traffic_Bold top-12 
                  w-[190px] left-2 rounded-sm h-8 mb-1 
                  bg-[#FFECC5] placeholder-[#4E0114] 
                 border-1
                  border-[#FFECC5] "
-          onChange={(e) => setPrevUsername(e.target.value)}
           type="text"
           name="prevUsername"
-          value={prevUsername || ""}
-          placeholder="نام کاربری قبلی"
+          placeholder={
+            (session.data as Session)?.user?.name || "نام کاربری قبلی"
+          }
         />
         <input
           className="text-right text-sm px-1 font-B_Traffic_Bold top-12 
@@ -66,17 +65,27 @@ export default function EditUsername({
                  bg-[#FFECC5] placeholder-[#4E0114] 
                 border-1
                  border-[#FFECC5] "
-          onChange={(e) => setUsername(e.target.value)}
           type="text"
           name="username"
-          value={username || ""}
           placeholder="نام کاربری جدید"
         />
         <div
-          className=" h-8 flex items-center font-B_Traffic_Bold
-         text-[#FFECC5] justify-center"
+          className={`h-8 flex items-center font-B_Traffic_Bold
+         ${
+           changeUsernameQuery.isError ? "text-red-500" : "text-[#FFECC5]"
+         }  justify-center`}
         >
-          {message}
+          {changeUsernameQuery.isError
+            ? JSON.parse(changeUsernameQuery.error.message as string).map(
+                (mess: any) => {
+                  return (
+                    <div key={mess}>
+                      <div>{mess}</div>
+                    </div>
+                  );
+                }
+              )
+            : changeUsernameQuery.data?.message}
         </div>
 
         <Button_Spinner

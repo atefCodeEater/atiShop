@@ -7,9 +7,9 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import bcrypt from "bcryptjs";
-export async function POST(req: Request) {
-    const formdata = req.formData()
+
+export async function changePassword(formdata: FormData) {
+
     const id = (await formdata).get('id') as string
     const password = (await formdata).get('password') as string
     const prevPassword = (await formdata).get('prevPassword') as string
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
         }
     })
     if (!prevPassword) {
-        return NextResponse.json({ message: ["پسورد قبلی شما موجود نیست"], fault: true })
+        throw new Error(JSON.stringify(["پسورد قبلی شما موجود نیست"]))
     }
 
     // Decrypt
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     var decodePassword = bytes.toString(CryptoJS.enc.Utf8);
 
     if (decodePassword !== prevPassword) {
-        return NextResponse.json({ message: ["پسورد قبلی شما اشتباه است"], fault: true })
+        throw new Error(JSON.stringify(["پسورد قبلی شما اشتباه است"]))
     }
 
     const result = await passwordSchema.safeParse({
@@ -43,34 +43,31 @@ export async function POST(req: Request) {
     })
     if (!result.success) {
         console.log(result.error.flatten().fieldErrors.password);
-        return NextResponse.json({ message: result.error.flatten().fieldErrors.password, fault: true })
+
+        throw new Error(JSON.stringify(result.error.flatten().fieldErrors.password))
     }
     //! HASHING
 
     var ciphertext = CryptoJS.AES
         .encrypt(password, process.env.CRYPTOSECRET as string).toString();
-    try {
 
-        const user = await db.user.update({
-            where: {
-                id: id
-            }, data: {
-                password: ciphertext
-            }
-        })
-        console.log(user);
-        await signIn('credentials', {
-            email: user.email,
-            password: user.password, redirect: false
-        })
-        revalidatePath(paths.dashboard(id))
-        return NextResponse.json({ message: ["با موفقیت انجام شد"] })
 
-    } catch (error: any) {
-        console.log(error);
-        return NextResponse.json({ message: error.message })
+    const user = await db.user.update({
+        where: {
+            id: id
+        }, data: {
+            password: ciphertext
+        }
+    })
+    console.log(user);
+    await signIn('credentials', {
+        email: user.email,
+        password: user.password, redirect: false
+    })
 
-    }
+    return { message: "با موفقیت انجام شد" }
+
+
 
 
 

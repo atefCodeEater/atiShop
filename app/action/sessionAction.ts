@@ -6,5 +6,6 @@ import { auth } from "../auth";
 
 export const forSession = async (): Promise<Session | null> => {
     const session = await auth();
-    return session
+    console.log("session ", session?.user);
+    return session as Session
 }

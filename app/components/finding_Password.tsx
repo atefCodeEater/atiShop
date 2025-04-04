@@ -1,33 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, FormEventHandler, useState } from "react";
 import Button_Spinner from "../components/ReusableComponents/ButtonSpinner";
+import { findingPassword } from "@/app/action/findingPassword";
+import { useMutation } from "@tanstack/react-query";
 
 export default function FindingPassword() {
-  const [email, setEmail] = useState<string>("");
-  const [message, setMessage] = useState<{ message: string; fault: boolean }>({
-    message: "",
-    fault: false,
-  });
+  const findPassQUERY = useMutation({ mutationFn: findingPassword });
 
-  const handleSubmit = async (e: any) => {
-    const formdata = new FormData();
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formdata = new FormData(e.currentTarget);
 
-    formdata.append("email", email);
-
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOTURL}/api/findingpassword`,
-      {
-        method: "POST",
-        body: formdata,
-      }
-    );
-
-    const message = await response.json();
-
-    if (response.ok) {
-      setMessage(message);
-    }
+    findPassQUERY.mutate(formdata, {});
   };
   return (
     <div
@@ -39,10 +24,12 @@ export default function FindingPassword() {
           بازیابی رمز عبور
         </h1>
 
-        <form action={handleSubmit} className="mt-6 w-full h-3/5">
+        <form
+          onSubmit={async (e) => await handleSubmit(e)}
+          className="mt-6 w-full h-3/5"
+        >
           <input
-            onChange={(e) => setEmail(e.target.value)}
-            value={email || ""}
+            name="email"
             className="text-right h-8 rounded-md bg-[#FFECC5] 
               font-B_Traffic_Bold text-base px-2
               w-full placeholder-[#4E0114] text-[#4E0114]"
@@ -51,9 +38,9 @@ export default function FindingPassword() {
           />
           <div
             className={` h-9 text-center p-2 font-B_Traffic_Bold text-base
-                ${message.fault ? "text-[#dd2d2d]" : "text-[#FFECC5]"}`}
+                ${findPassQUERY.error ? "text-[#dd2d2d]" : "text-[#FFECC5]"}`}
           >
-            {message.message}
+            {findPassQUERY.data?.message || findPassQUERY.error?.message}
           </div>
           <Button_Spinner
             children="بازیابی"

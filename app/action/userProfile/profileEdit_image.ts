@@ -7,17 +7,19 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { sign } from "crypto";
-import { redirect } from "next/navigation";
-export async function POST(req: Request) {
-    const formdata = req.formData()
+
+export async function profileEditImage(formdata: FormData) {
+
 
     const image = (await formdata).get('image') as File
+    console.log("image : ", image);
     const id = (await formdata).get('id') as string
     const isAdminStringiFy = (await formdata).get('isAdmin') as string
     const isAdmin = JSON.parse(isAdminStringiFy) as boolean
     const name = (await formdata).get('name') as string
-
+    if (image.name === "undefined") {
+        throw new Error('عکس انتخواب نشده است')
+    }
     console.log("name : ", name);
     const sessionImage = (await formdata).get('sessionImage') as string
     const imageBuffer = await image.arrayBuffer()
@@ -55,10 +57,9 @@ export async function POST(req: Request) {
             password: user.password,
             redirect: false
         })
-        revalidatePath(paths.dashboard(id))
 
 
-        return NextResponse.json({ message: 'با موفقیت انجام شد' })
+        return { message: 'با موفقیت انجام شد' }
 
     } catch (error) {
         console.log(error);

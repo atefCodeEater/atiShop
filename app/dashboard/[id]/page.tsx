@@ -1,4 +1,4 @@
-"use server";
+"use client";
 import { useSignOut } from "@/app/action/signOut";
 import { auth, signOut } from "@/app/auth";
 import SignOutComponent from "@/app/components/related_Auth/signOut_Comp";
@@ -6,22 +6,37 @@ import ArrangeAll_Dashboard from "@/app/components/ReusableComponents/arrangeAll
 import NameAndAvatar from "@/app/components/related_Dashboard/nameAvatar";
 import { paths } from "@/app/paths";
 import { Avatar } from "@nextui-org/react";
-
+import { useCustomQuery } from "@/app/hooks/useQuery_customHook";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RxExit } from "react-icons/rx";
-
-export default async function Dashboard({
+import { forSession } from "@/app/action/sessionAction";
+import { useQueryClient } from "@tanstack/react-query";
+import { Session } from "next-auth";
+export default function Dashboard({
   params: { id },
 }: {
   params: { id: string };
 }) {
-  const session = await auth();
-  if (!session?.user) {
-    return notFound();
-  }
+  const queryclient = useQueryClient();
+  const { data } = useCustomQuery(["forSession", id], forSession, {
+    queryKey: ["forSession", id],
 
-  console.log("session?.user : ", session?.user);
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    initialData: () => {
+      const cacheData = queryclient.getQueryData(["forSession"]) as Session;
+
+      console.log("cacheData : ", cacheData);
+
+      if (cacheData) {
+        return cacheData;
+      }
+      return undefined;
+    },
+  });
+
+  console.log("session?.user : ", data?.user);
 
   return (
     <div className=" w-full h-screen fixed bg-[#4E0114]">
@@ -44,8 +59,8 @@ export default async function Dashboard({
          space-x-4 items-center text-2xl text-[#FFECC5] font-B_Traffic"
         >
           <NameAndAvatar
-            image={session.user.image as string}
-            title={session.user.name as string}
+            image={(data as Session)?.user?.image as string}
+            title={(data as Session)?.user?.name as string}
           />
         </div>
         <div className="flex justify-end items-center">
@@ -61,9 +76,9 @@ export default async function Dashboard({
       </div>
       <div className="flex justify-center mt-20 w-full h-full">
         <ArrangeAll_Dashboard
-          isAdmin={session.user.isAdmin as boolean}
-          sessionImage={session.user?.image as string}
-          name={session.user?.name as string}
+          isAdmin={(data as Session)?.user?.isAdmin as boolean}
+          sessionImage={(data as Session)?.user?.image as string}
+          name={(data as Session)?.user?.name as string}
           id={id}
         />
       </div>

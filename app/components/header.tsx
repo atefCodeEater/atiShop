@@ -17,6 +17,7 @@ export default function Header() {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
+  console.log("session in header", data);
   return (
     <div
       className={`w-2/3 font-B_Traffic_Bold bg-[#4E0114] h-16 grid grid-cols-3 rounded-md`}

@@ -23,12 +23,7 @@ interface handleSubmit_Group {
 export const handleSubmit = async ({ groups, groupName, setIndicator, setMessageUi, editorRef, image,
     groupLevel, router, parent
 }: handleSubmit_Group) => {
-    if (!groupName.length) {
-        return setMessageUi({
-            message: "نام گروه وارد نشده است",
-            fault: true,
-        });
-    }
+
     const formdata = new FormData();
 
     const canvas = editorRef.current?.getImageScaledToCanvas();
@@ -40,20 +35,5 @@ export const handleSubmit = async ({ groups, groupName, setIndicator, setMessage
     formdata.append("groupLevel", JSON.stringify(groupLevel));
 
     formdata.append("user", JSON.stringify({ groupName } as any));
-    const response = await fetch(
-        `${process.env.NEXT_PUBLIC_ROOTURL}/api/related_Groups/createGroup`,
-        {
-            method: "POST",
-            body: formdata,
-        }
-    );
-    const message = await response.json();
-    console.log("message.allgroups : ", message.allgroups);
-    if (response.ok) {
-        setIndicator(groupLevel)
-        setMessageUi({ message: message.message, fault: false });
-        setTimeout(() => {
-            router.refresh();
-        }, 1000);
-    }
+
 };

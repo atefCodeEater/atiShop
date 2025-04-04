@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Button_Spinner from "../../ReusableComponents/ButtonSpinner";
 import Dropzone from "react-dropzone";
 import { canvasToFile } from "@/app/services/canvasToFile";
-import { useRouter } from "next/navigation";
+import { profileEditImage } from "@/app/action/userProfile/profileEdit_image";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function EditImage({
   id,
@@ -18,21 +19,20 @@ export default function EditImage({
   sessionImage: string;
 }) {
   const [scale, setScale] = useState<string>("2");
-  const [message, setMessage] = useState<string>("");
+
   const [image, setImage] = useState<File | null>();
 
-  const router = useRouter();
+  const changeImageQuery = useMutation({ mutationFn: profileEditImage });
 
   const imageRef = useRef<any>();
   const handleDrop = (dropped: any) => {
     setImage(dropped[0]);
   };
-
+  const queryClient = useQueryClient();
   async function HandleSubmit(e: any) {
+    e.preventDefault();
     const formdata = new FormData();
-    if (!image) {
-      return setMessage("عکس وارد نشده است");
-    }
+
     const canvas = imageRef.current?.getImageScaledToCanvas();
     const imageFile = await canvasToFile(canvas, image?.name as string, "jpg");
 
@@ -44,18 +44,11 @@ export default function EditImage({
 
     formdata.append("sessionImage", sessionImage as string);
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOTURL}/api/profileEdit_image`,
-      {
-        method: "POST",
-        body: formdata,
-      }
-    );
-    const message = await response.json();
-    if (response.ok) {
-      router.refresh();
-      setMessage(message.message);
-    }
+    changeImageQuery.mutate(formdata, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["forSession"] });
+      },
+    });
   }
   return (
     <div
@@ -102,10 +95,15 @@ export default function EditImage({
           onChange={(e) => setScale(e.target.value)}
         />
       </div>
-      <div className="w-full absolute text-xs top-44 h-6  text-[#FFECC5] font-B_Traffic_Bold text-center">
-        {message}
+      <div
+        className={` w-full absolute text-xs top-44 h-6 
+      ${
+        changeImageQuery.error ? "text-red-600" : "text-[#FFECC5]"
+      }  font-B_Traffic_Bold text-center`}
+      >
+        {changeImageQuery.error?.message || changeImageQuery.data?.message}
       </div>
-      <form action={HandleSubmit}>
+      <form onSubmit={async (e) => await HandleSubmit(e)}>
         <Button_Spinner
           children="ثبت"
           className="rounded-md text-lg absolute font-B_Traffic_Bold

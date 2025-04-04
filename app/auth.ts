@@ -48,6 +48,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) { // User is available during sign-in
+
         token.id = user.id
         const User = await db.user.findUnique({ where: { id: user.id } })
         token.isAdmin = User?.isAdmin || false
@@ -57,6 +58,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     async session({ session, token }: { session: any, token: any }) {
       session.user.id = token.id
       session.user.isAdmin = token.isAdmin;
+      session.user.role = token.role || "user";
       return session
     },
   },

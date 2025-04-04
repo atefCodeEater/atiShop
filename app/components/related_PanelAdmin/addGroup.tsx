@@ -3,10 +3,10 @@
 import { BiAddToQueue, BiTrash } from "react-icons/bi";
 import Modal_addGroup from "@/app/components/ReusableComponents/Modal_Components";
 import Modal_deleteGroup from "@/app/components/ReusableComponents/Modal_Components";
-import { cache, Suspense } from "react";
+import { cache, Suspense, useMemo } from "react";
 import { Groups } from "@prisma/client";
 import React, { useEffect, useState } from "react";
-import { handleSubmit } from "@/app/queries/Submit_forGroup";
+// import { handleSubmit } from "@/app/queries/Submit_forGroup";
 import { deleteGroup } from "@/app/queries/deleteGroup";
 
 import {
@@ -21,87 +21,110 @@ import { useRouter } from "next/navigation";
 import Skeleton_comp from "../ReusableComponents/skeleton";
 import { useFormStatus } from "react-dom";
 import { FcDeleteDatabase } from "react-icons/fc";
-import { useMutation } from "@tanstack/react-query";
-export default function AddGroup({
-  id,
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCustomQuery } from "@/app/hooks/useQuery_customHook";
+import { fetchGroupsQuery } from "@/app/action/relatedGroups/fetchGroups";
+import { createGroup } from "@/app/action/relatedGroups/createGroup";
+import { makeLastItems } from "@/app/action/relatedGroups/makeLastItem";
 
-  groups,
-}: {
-  id: string;
-  groups: Groups[];
-}) {
-  const [messageUi, setMessageUi] = useState<{
-    message: string;
-    fault: boolean;
-  }>({
-    message: "",
-    fault: false,
-  });
-  const router = useRouter();
-  const [uiGroup, setuiGroup] = useState<Groups[][]>([]);
-  const { pending } = useFormStatus();
-  console.log(pending);
-  const [indicator, setIndicator] = useState<number>(1);
-  const [userItems, setUserItems] = useState<{
-    id: string;
-    groupLevel: number;
-    prevLastGroup_id: string;
-  }>({ id: "", groupLevel: 1, prevLastGroup_id: "" });
+import { date } from "zod";
 
-  const makeLastItem = async (event: any) => {
-    const formdata = new FormData();
+export default function AddGroup({ id }: { id: string }) {
+  const queryclient = useQueryClient();
 
-    formdata.append("user", JSON.stringify(userItems as any));
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOTURL}/api/related_Groups/makeLastItem`,
-      {
-        method: "POST",
-        body: formdata,
+  const allGroups = useCustomQuery(["groups"], fetchGroupsQuery, {
+    queryKey: ["groups"],
+    queryFn: () => fetchGroupsQuery(),
+    refetchOnMount: false,
+    select(data) {
+      // if (!allGroups.isLoading) {
+      var i = 1;
+      var useinUiGroup: any = [];
+      var groups = [...(data as Groups[])];
+      while (i <= indicator) {
+        var withGroupLevel = groups?.filter((group) => {
+          if (i === 1) {
+            return group.groupLevel === i && !group.isLastItem;
+          } else {
+            return (
+              uiGroup.length &&
+              group.groupLevel === i &&
+              !group.isLastItem &&
+              uiGroup[uiGroup?.length - 1][
+                uiGroup[uiGroup?.length - 1]?.length - 1
+              ]?.name === group.parent
+            );
+          }
+        });
+
+        var withIsLast = groups?.filter((group) => {
+          return group.groupLevel === i && group.isLastItem;
+        });
+        var stepOne = [];
+
+        stepOne = [...(withGroupLevel as any)];
+        stepOne.push(...(withIsLast as any));
+        useinUiGroup.push(stepOne);
+        stepOne = [];
+
+        i++;
+        // }
+
+        // return useinUiGroup;
       }
-    );
-    const message = await response.json();
-    if (response.ok) {
-      router.refresh();
-      return setMessageUi({ message: message.message, fault: false });
-    }
+
+      setuiGroup(useinUiGroup);
+
+      return data;
+    },
+  });
+
+  const addGroupQuery = useMutation({ mutationFn: createGroup });
+
+  const [uiGroup, setuiGroup] = useState<Groups[][]>([]);
+
+  const [indicator, setIndicator] = useState<number>(1);
+
+  const makeLastItemQuery = useMutation({ mutationFn: makeLastItems });
+
+  const handleLastItem = (
+    e: any,
+    groupLevel: number,
+    id: string,
+    prevLastGroup_id: string
+  ) => {
+    e.preventDefault();
+    const formdata = new FormData(e.currentTarget);
+    const userItems = {
+      id: id,
+      groupLevel: groupLevel,
+      prevLastGroup_id: prevLastGroup_id,
+    };
+    formdata.append("user", JSON.stringify(userItems as any));
+    makeLastItemQuery.mutate(formdata, {
+      onSuccess: (data: any) => {
+        console.log("onSuccess data : ", data);
+        // queryclient.invalidateQueries({ queryKey: ["groups"] });
+        queryclient.setQueryData(["groups"], (oldData: Groups[]) => {
+          const result = oldData.map((group) => {
+            if (group.id === prevLastGroup_id) {
+              return { ...group, isLastItem: false };
+            }
+            if (group.id === data.id) {
+              return { ...group, isLastItem: true };
+            }
+            return group;
+          });
+
+          console.log("result : ", result);
+
+          return result;
+        });
+        // setIndicator(groupLevel as number);
+      },
+    });
   };
-
-  useEffect(() => {
-    var i = 1;
-    var useinUiGroup: any = [];
-    while (i <= indicator) {
-      var withGroupLevel = groups.filter((group) => {
-        if (i === 1) {
-          return group.groupLevel === i && !group.isLastItem;
-        } else {
-          return (
-            uiGroup.length &&
-            group.groupLevel === i &&
-            !group.isLastItem &&
-            uiGroup[uiGroup?.length - 1][
-              uiGroup[uiGroup?.length - 1]?.length - 1
-            ]?.name === group.parent
-          );
-        }
-      });
-
-      var withIsLast = groups.filter((group) => {
-        return group.groupLevel === i && group.isLastItem;
-      });
-      var stepOne = [];
-
-      stepOne = [...withGroupLevel];
-      stepOne.push(...withIsLast);
-      useinUiGroup.push(stepOne);
-      stepOne = [];
-
-      i++;
-    }
-    setuiGroup(useinUiGroup);
-  }, [groups, indicator]);
-
-  console.log("groups :", groups);
-
+  console.log("uigroup : ", uiGroup);
   var render_dropDowns = uiGroup[0]?.map((drop) => {
     return (
       <div
@@ -109,17 +132,20 @@ export default function AddGroup({
         className="w-24  flex justify-center items-center 
           "
       >
-        <form action={makeLastItem}>
+        <form
+          onSubmit={(e) => {
+            handleLastItem(
+              e,
+              drop.groupLevel as number,
+              drop.id,
+              uiGroup[0][uiGroup[0].length - 1].id as string
+            );
+          }}
+        >
           <button
             type="submit"
             onClick={async () => {
               await setIndicator(1);
-              await setUserItems({
-                id: drop.id,
-                groupLevel: drop.groupLevel as number,
-                prevLastGroup_id: uiGroup[0][uiGroup[0].length - 1]
-                  .id as string,
-              });
             }}
             className={` cursor-pointer text-sm mb-[2px] overflow-auto shadow-sm shadow-[#000000]
             bg-[#FFECC5]   
@@ -135,15 +161,23 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
     );
   });
   var render_UiGroup = uiGroup.map((groupArr, index) => {
-    var subGroups = groups.filter((subGroup) => {
+    var groups = allGroups.data as Groups[];
+    var subGroups = groups?.filter((subGroup) => {
       return subGroup.parent === groupArr[groupArr.length - 1]?.name;
     });
-    var render_subGroups = subGroups.map((sub) => {
+    var render_subGroups = subGroups?.map((sub) => {
       return (
         <div className="flex justify-end px-1 py-2 " key={sub.id}>
           <form
-            action={async (e) => {
-              await makeLastItem(e);
+            onSubmit={(e) => {
+              handleLastItem(
+                e,
+                sub.groupLevel as number,
+                sub.id,
+                groups?.find((gr) => {
+                  return gr.groupLevel === sub.groupLevel && gr.isLastItem;
+                })?.id as string
+              );
             }}
             className="w-20 h-6 font-B_Traffic_Bold text-sm rounded-md
              text-[#FFECC5] border-1  cursor-pointer  border-[#FFECC5]
@@ -151,13 +185,6 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
           >
             <button
               onClick={() => {
-                setUserItems({
-                  id: sub.id,
-                  groupLevel: sub.groupLevel as number,
-                  prevLastGroup_id: groups.find((gr) => {
-                    return gr.groupLevel === sub.groupLevel && gr.isLastItem;
-                  })?.id as string,
-                });
                 setIndicator(sub.groupLevel as number);
               }}
               type="submit"
@@ -204,8 +231,8 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
             <Modal_deleteGroup
               parent=""
               id={groupArr[groupArr.length - 1]?.id as string}
-              groups={groups}
-              Query={deleteGroup}
+              groups={groups as Groups[]}
+              Query={deleteGroup as any}
               outCss="h-9"
               name={
                 (groupArr.length &&
@@ -226,7 +253,7 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
         </div>
         <div
           className={`mt-2  flex h-[120px]  ${
-            subGroups.length > 11 && " overflow-y-scroll"
+            subGroups && subGroups?.length > 11 && " overflow-y-scroll"
           } w-full items-start`}
         >
           <div
@@ -235,8 +262,8 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
             {render_subGroups}
             <div className="w-28">
               <Modal_addGroup
-                groups={groups}
-                Query={handleSubmit}
+                groups={groups as Groups[]}
+                Query={addGroupQuery as any}
                 outCss="h-6"
                 groupLevel={((groupArr[0]?.groupLevel as number) + 1) as number}
                 setIndicator={setIndicator}
@@ -308,8 +335,8 @@ bg-[#4E0114]
         </div>
         <div className="fixed ">
           <Modal_addGroup
-            groups={groups}
-            Query={handleSubmit}
+            groups={allGroups.data as Groups[]}
+            Query={addGroupQuery as any}
             outCss="h-9"
             parent=""
             setIndicator={setIndicator}
