@@ -61,7 +61,7 @@ export default function DropDownComp({
               setAddInput(newArr);
               setDropOpenHelp("");
             }}
-            className="text-[#b72727]  transition-all duration-300 
+            className="text-[#c72c2c]  transition-all duration-300 
                  hover:text-2xl text-xl   ml-1 cursor-pointer "
           />
         </section>
