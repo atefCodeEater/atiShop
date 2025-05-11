@@ -65,6 +65,7 @@ products         Products[]
 groupLevel Int?
   products   Products[]
   parent String?
+  form String?
 }
  model Products {
  

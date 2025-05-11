@@ -20,7 +20,10 @@ export const submiting = async (formdata: FormData): Promise<any> => {
         password: z.string().min(4, { message: 'پسورد حد اقل چهار کاراکتر باشد' })
             .regex(/[@#$]/, "پسورد دارای کاراکتر های خاص باشد")
     });
-
+    const findPrevUser = await db.user.findUnique({ where: { email } })
+    if (findPrevUser) {
+        throw new Error(JSON.stringify({ message: ['این ایمیل ثبت شده است'] }))
+    }
     const result = schema.safeParse({
         email,
         password

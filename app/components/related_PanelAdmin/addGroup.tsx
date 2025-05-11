@@ -1,13 +1,13 @@
 "use client";
-
+import { FaRegEdit } from "react-icons/fa";
 import { BiAddToQueue, BiTrash } from "react-icons/bi";
-import Modal_addGroup from "@/app/components/ReusableComponents/Modal_Components";
-import Modal_deleteGroup from "@/app/components/ReusableComponents/Modal_Components";
-import { cache, Suspense, useMemo } from "react";
+import Modal_deleteGroup from "@/app/components/Modals/DeleteGroup_Modal";
+import Modal_addGroup from "@/app/components/Modals/CreateGroup_Modal";
+import EditGroup_Modal from "@/app/components/Modals/EditGroup_Modal";
+import CreateForm_Modal from "@/app/components/Modals/createForm_Modal";
+
 import { Groups } from "@prisma/client";
 import React, { useEffect, useState } from "react";
-// import { handleSubmit } from "@/app/queries/Submit_forGroup";
-import { deleteGroup } from "@/app/queries/deleteGroup";
 
 import {
   Avatar,
@@ -17,14 +17,13 @@ import {
   PopoverTrigger,
 } from "@nextui-org/react";
 import { RxDropdownMenu } from "react-icons/rx";
-import { useRouter } from "next/navigation";
 import Skeleton_comp from "../ReusableComponents/skeleton";
-import { useFormStatus } from "react-dom";
-import { FcDeleteDatabase } from "react-icons/fc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCustomQuery } from "@/app/hooks/useQuery_customHook";
 import { fetchGroupsQuery } from "@/app/action/relatedGroups/fetchGroups";
 import { createGroup } from "@/app/action/relatedGroups/createGroup";
+import { deleteGroup } from "@/app/action/relatedGroups/deleteGroup";
+
 import { makeLastItems } from "@/app/action/relatedGroups/makeLastItem";
 
 import { date } from "zod";
@@ -36,8 +35,10 @@ export default function AddGroup({ id }: { id: string }) {
     queryKey: ["groups"],
     queryFn: () => fetchGroupsQuery(),
     refetchOnMount: false,
+    refetchOnWindowFocus: false,
+
     select(data) {
-      // if (!allGroups.isLoading) {
+      console.log("select data : ", data);
       var i = 1;
       var useinUiGroup: any = [];
       var groups = [...(data as Groups[])];
@@ -68,9 +69,6 @@ export default function AddGroup({ id }: { id: string }) {
         stepOne = [];
 
         i++;
-        // }
-
-        // return useinUiGroup;
       }
 
       setuiGroup(useinUiGroup);
@@ -78,6 +76,8 @@ export default function AddGroup({ id }: { id: string }) {
       return data;
     },
   });
+
+  const deleteGroupQuery = useMutation({ mutationFn: deleteGroup });
 
   const addGroupQuery = useMutation({ mutationFn: createGroup });
 
@@ -103,9 +103,16 @@ export default function AddGroup({ id }: { id: string }) {
     formdata.append("user", JSON.stringify(userItems as any));
     makeLastItemQuery.mutate(formdata, {
       onSuccess: (data: any) => {
-        console.log("onSuccess data : ", data);
-        // queryclient.invalidateQueries({ queryKey: ["groups"] });
+        // console.log("prevLastGroup_id : ", prevLastGroup_id);
         queryclient.setQueryData(["groups"], (oldData: Groups[]) => {
+          if (data.id === prevLastGroup_id) {
+            const result = oldData.map((group) => {
+              const obj = { ...group };
+              return { ...group, obj };
+            });
+
+            return result;
+          }
           const result = oldData.map((group) => {
             if (group.id === prevLastGroup_id) {
               return { ...group, isLastItem: false };
@@ -115,9 +122,6 @@ export default function AddGroup({ id }: { id: string }) {
             }
             return group;
           });
-
-          console.log("result : ", result);
-
           return result;
         });
         // setIndicator(groupLevel as number);
@@ -154,7 +158,7 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
          font-B_Traffic_Bold  px-2 flex justify-center items-center transition-all 
          delay-150 min-w-32 h-9 rounded-md`}
           >
-            {drop.name}
+            {drop.name || ""}
           </button>
         </form>
       </div>
@@ -189,7 +193,7 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
               }}
               type="submit"
             >
-              {sub.name}
+              {sub.name || ""}
             </button>
           </form>
         </div>
@@ -201,11 +205,13 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
         className="w-[400px] h-[200px] mb-4  rounded-md bg-[#4E0114] "
       >
         <div
-          className="flex w-full  border-[#FFECC5] border-dashed px-2 justify-center items-center 
+          className="flex w-full  border-[#FFECC5] border-dashed px-2 justify-center
+           items-center 
         space-x-2 border-b-1 py-2"
         >
           <h1 className="text-[#FFECC5] w-auto  text-base text-center font-B_Traffic_Bold">
-            {groupArr.length && groupArr[groupArr.length - 1]?.name}
+            {(groupArr.length && groupArr[groupArr.length - 1]?.name) ||
+              ". . ."}
           </h1>
           <h1 className="text-[#FFECC5] ml-2 text-base text-center font-B_Traffic_Bold">
             گروه
@@ -223,16 +229,29 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
               ""
             }
           />
+          <EditGroup_Modal
+            prevGroupName={
+              (groupArr.length &&
+                (groupArr[groupArr.length - 1]?.name as string)) ||
+              ""
+            }
+            id={
+              (groupArr.length &&
+                (groupArr[groupArr.length - 1]?.id as string)) ||
+              ""
+            }
+          />
           <div
             className="border-2 border-[#aa1717] transition-all delay-150 cursor-pointer 
             text-xl  w-8 h-8 flex
            hover:text-2xl justify-center items-center  rounded-md"
           >
             <Modal_deleteGroup
+              indicator={indicator}
               parent=""
               id={groupArr[groupArr.length - 1]?.id as string}
-              groups={groups as Groups[]}
-              Query={deleteGroup as any}
+              groups={allGroups.data as Groups[]}
+              Query={deleteGroupQuery as any}
               outCss="h-9"
               name={
                 (groupArr.length &&
@@ -250,6 +269,9 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
               icon={<BiTrash className="text-[#aa1717]  " />}
             />
           </div>
+          <CreateForm_Modal
+            title={groupArr[groupArr.length - 1]?.name || " . . . "}
+          />
         </div>
         <div
           className={`mt-2  flex h-[120px]  ${
@@ -267,9 +289,11 @@ text-[#4E0114] hover:text-[#FFECC5]  hover:bg-[#4E0114]
                 outCss="h-6"
                 groupLevel={((groupArr[0]?.groupLevel as number) + 1) as number}
                 setIndicator={setIndicator}
-                parent={groupArr[groupArr.length - 1]?.name as string}
+                parent={
+                  (groupArr[groupArr.length - 1]?.name as string) || " . . . "
+                }
                 title={`افزودن زیرگروه به ${
-                  groupArr[groupArr.length - 1]?.name
+                  groupArr[groupArr.length - 1]?.name || " . . . "
                 }`}
                 actionButtonTitle="افزودن"
                 openButtonTitle="افزودن"
